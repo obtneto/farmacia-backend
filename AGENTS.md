@@ -1,0 +1,585 @@
+# Backend - Farmácia Ambulatorial
+
+Este arquivo define as regras específicas da camada backend do projeto Farmácia Ambulatorial.
+
+As regras deste arquivo devem sempre respeitar o arquivo superior:
+
+```txt
+farmacia/AGENTS.override.md
+```
+
+Em caso de conflito, prevalece o `AGENTS.override.md`.
+
+---
+
+## 1. Responsável oficial do backend
+
+Agente responsável:
+
+```txt
+Ana Carolina → Backend Senior
+```
+
+A Ana Carolina é responsável por orientar, revisar, diagnosticar, implementar funcionalidades backend.
+
+---
+
+## 2. Regra absoluta de autorização do backend
+
+O backend é responsabilidade principal do Ovidio, Ana Carolina e Rafael.
+
+Ana Carolina e Rafael agentes deve criar, editar, refatorar, remover, renomear ou implementar arquivos backend.
+
+Essa regra se aplica a todos os arquivos dentro de:
+
+```txt
+farmacia/backend/
+```
+
+A Ana Carolina pode:
+
+- analisar erros;
+- revisar código;
+- explicar funcionamento;
+- sugerir melhorias;
+- propor refatorações;
+- propor endpoints;
+- propor queries;
+- apontar riscos;
+- orientar implementação.
+
+---
+
+## 3. Ordem obrigatória antes de qualquer implementação backend
+
+Antes de criar, modificar, corrigir ou refatorar qualquer código backend, o agente deve seguir esta ordem:
+
+1. Ler e aplicar `farmacia/AGENTS.override.md`.
+2. Consultar `memories/context-summary.md`.
+3. Confirmar se há autorização explícita do Ovidio para alterar backend.
+4. Consultar Context7.
+5. Consultar MCP Farmácia, quando a tarefa envolver estrutura, banco, rotas, regras do projeto ou contexto técnico local.
+6. Consultar a skill backend aplicável, quando necessário.
+7. Implementar somente o escopo solicitado.
+8. Validar o resultado.
+9. Atualizar documentação da API, quando houver alteração de rota.
+10. Informar arquivos alterados, validações feitas e pendências.
+
+
+---
+
+## 4. Uso obrigatório do Context7
+
+Antes de criar, modificar, corrigir ou refatorar código backend, consultar Context7 para as bibliotecas relacionadas à tarefa.
+
+Bibliotecas e tópicos prioritários:
+
+- Node.js v24;
+- Express;
+- Fastify;
+- Knex.js;
+- JWT;
+- Zod;
+- Jest;
+- MySQL 8.4;
+- middlewares;
+- autenticação;
+- validação;
+- transactions;
+- tratamento global de erros.
+
+Após consultar Context7, o agente deve informar brevemente:
+
+- biblioteca ou tópico consultado;
+- documentação ou versão usada, quando disponível;
+- decisão técnica aplicada com base na consulta.
+
+Se o Context7 não estiver disponível, o agente deve informar a falha antes de implementar.
+
+O agente não deve fingir que consultou o Context7.
+
+---
+
+## 5. Uso obrigatório da memória versionada
+
+Antes de qualquer tarefa backend relevante, consultar:
+
+```txt
+memories/context-summary.md
+```
+
+A memória deve ser usada para identificar:
+
+- contexto atual do projeto;
+- decisões técnicas já tomadas;
+- regras obrigatórias;
+- estrutura backend existente;
+- padrões de DAO, controller, service e rotas;
+- pendências;
+- riscos conhecidos;
+- comandos já validados.
+
+Se a memória estiver ausente, vazia ou desatualizada, o agente deve informar isso ao Ovidio.
+
+A memória não pode sobrescrever uma instrução explícita atual do Ovidio.
+
+Nunca salvar na memória:
+
+- tokens;
+- senhas;
+- chaves privadas;
+- chaves de API;
+- credenciais;
+- dados sensíveis;
+- dumps confidenciais;
+- dados pessoais desnecessários.
+
+---
+
+## 6. Uso obrigatório do MCP Farmácia
+
+Consultar o MCP Farmácia quando a tarefa envolver:
+
+- estrutura do backend;
+- tabelas;
+- schemas;
+- regras de estoque;
+- inventários;
+- requisições;
+- medicamentos;
+- depósitos;
+- rotas existentes;
+- consultas ao banco;
+- validação de contexto técnico local.
+
+O agente deve respeitar o escopo do MCP.
+
+Se o MCP estiver indisponível, o agente deve informar isso antes de implementar qualquer alteração dependente dele.
+
+---
+
+## 7. Skill backend obrigatória
+
+Quando a tarefa envolver criação, ajuste ou revisão de API REST, aplicar a skill:
+
+```txt
+farmacia/backend/.agents/skills/express-rest-api
+```
+
+Usar essa skill especialmente para:
+
+- criação de endpoints;
+- organização de rotas;
+- controllers;
+- services;
+- repositories/queries;
+- validação de payload;
+- respostas HTTP;
+- tratamento de erros;
+- padronização REST.
+
+Se a skill não estiver disponível, o agente deve informar a ausência e seguir o padrão existente do projeto, desde que tenha autorização explícita do Ovidio para implementar.
+
+---
+
+## 8. Objetivo da camada backend
+
+O backend deve implementar e manter:
+
+- APIs REST;
+- regras de estoque;
+- inventários;
+- requisições;
+- autenticação;
+- autorização;
+- relatórios;
+- integrações com banco;
+- validações de negócio;
+- transações;
+- documentação da API.
+
+---
+
+## 9. Stack backend oficial
+
+Stack backend:
+
+- Node.js v24;
+- Express;
+- Fastify, quando já existir no módulo ou for explicitamente solicitado;
+- Knex.js;
+- MySQL 8.4;
+- JWT;
+- Zod;
+- Jest.
+
+Não introduzir novas bibliotecas estruturais sem justificar tecnicamente e sem autorização do Ovidio.
+
+---
+
+## 10. Bancos de dados
+
+Schemas oficiais:
+
+```txt
+fsph_farmacia     → leitura e escrita
+fsph_ambulatorio  → somente leitura
+```
+
+Regras obrigatórias:
+
+- `fsph_farmacia` é o schema principal da aplicação.
+- `fsph_ambulatorio` é fonte externa somente leitura.
+- Nunca escrever, alterar, truncar, migrar ou recriar tabelas no schema `fsph_ambulatorio`.
+- Nunca recriar tabelas sem autorização explícita do Ovidio.
+- Nunca assumir estrutura de tabela sem consultar o contexto disponível, MCP, documentação ou código existente.
+
+---
+
+## 11. Padrões obrigatórios de arquitetura backend
+
+Seguir os padrões existentes do projeto.
+
+Padrão esperado:
+
+- controller fino;
+- service contendo regra de negócio;
+- repository/query separado;
+- validação de entrada antes da regra principal;
+- transactions em operações críticas;
+- tratamento global de erros;
+- respostas HTTP padronizadas;
+- reaproveitamento de funções utilitárias;
+- baixo acoplamento entre rotas, controllers, services e queries.
+
+Responsabilidades:
+
+### Controller
+
+O controller deve:
+
+- receber request;
+- extrair parâmetros;
+- chamar service;
+- retornar resposta HTTP;
+- não concentrar regra de negócio complexa.
+
+### Service
+
+O service deve:
+
+- aplicar regra de negócio;
+- validar fluxo;
+- coordenar transactions;
+- chamar repositories/queries;
+- decidir erros de negócio.
+
+### Repository/Query
+
+A camada repository/query deve:
+
+- concentrar acesso ao banco;
+- manter queries organizadas;
+- evitar SQL duplicado;
+- respeitar schemas permitidos;
+- não conter regra de negócio complexa.
+
+### Utils
+
+A pasta `utils/` deve ser usada para funções reutilizáveis.
+
+Não duplicar funções. Antes de criar uma função nova, verificar se já existe utilitário equivalente.
+
+---
+
+## 12. Regra obrigatória para documentação da API
+
+Ao criar, modificar ou excluir uma rota, atualizar a documentação da API.
+
+Arquivo principal:
+
+```txt
+farmacia/swagger.md
+```
+
+Script relacionado:
+
+```txt
+swagger/swagger-docs.js
+```
+
+Regra:
+
+- toda rota nova deve ser documentada;
+- toda alteração de contrato deve atualizar a documentação;
+- toda remoção de rota deve refletir na documentação;
+- exemplos de request/response devem estar coerentes com a implementação;
+- códigos HTTP devem estar documentados;
+- parâmetros obrigatórios e opcionais devem estar claros.
+
+Antes de finalizar uma alteração em rotas, executar ou orientar a execução do script de documentação, conforme o fluxo existente do projeto.
+
+---
+
+## 13. Regras críticas de estoque
+
+Toda movimentação de estoque deve usar transaction.
+
+Operações que exigem transaction:
+
+- entrada de medicamento;
+- baixa de estoque;
+- aprovação de requisição;
+- cancelamento com reversão de estoque;
+- ajuste de inventário;
+- transferência entre depósitos;
+- alteração de lote com impacto em saldo;
+- qualquer operação que altere saldo, movimentação e histórico.
+
+O estoque deve ser controlado por:
+
+```txt
+depósito + medicamento + lote
+```
+
+Toda movimentação deve preservar:
+
+- rastreabilidade;
+- histórico;
+- consistência de saldo;
+- vínculo com documento/origem;
+- data/hora;
+- usuário/responsável, quando disponível.
+
+---
+
+## 14. Regras críticas de requisições
+
+Requisição não baixa estoque no momento da criação.
+
+A baixa de estoque só pode ocorrer após aprovação.
+
+Fluxo mínimo esperado:
+
+1. Criar requisição.
+2. Registrar itens solicitados.
+3. Aguardar aprovação.
+4. Validar saldo disponível.
+5. Aprovar requisição.
+6. Baixar estoque dentro de transaction.
+7. Registrar movimentação.
+8. Atualizar status.
+
+Nenhum agente deve alterar esse fluxo sem autorização explícita do Ovidio.
+
+---
+
+## 15. Regras críticas de inventário
+
+Inventário fechado não pode ser reaberto.
+
+Após fechamento, ajustes devem ocorrer por novo processo autorizado, nunca por edição direta do inventário fechado.
+
+O backend deve preservar:
+
+- data de abertura;
+- data de fechamento;
+- responsável;
+- itens contados;
+- divergências;
+- movimentações geradas;
+- histórico de ajustes.
+
+Nenhum agente deve alterar o comportamento de inventário fechado sem autorização explícita do Ovidio.
+
+---
+
+## 16. Regra de chave primária
+
+Ao criar novos registros pela API, o campo de chave primária deve ser enviado como `0` ou omitido, conforme o contrato do endpoint.
+
+A geração definitiva do ID é responsabilidade da API e/ou do banco de dados.
+
+Nenhum agente deve assumir manualmente o próximo ID sem verificar o contrato existente.
+
+---
+
+## 17. Validação e tratamento de erros
+
+O backend deve:
+
+- validar entrada de dados;
+- rejeitar payload inválido;
+- padronizar erros de negócio;
+- evitar retorno de stack trace em produção;
+- usar tratamento global de erros;
+- retornar códigos HTTP coerentes;
+- proteger dados sensíveis;
+- registrar erros de forma segura, quando houver logging.
+
+Preferir Zod para validação quando o padrão do módulo permitir.
+
+---
+
+## 18. Autenticação e segurança
+
+Ao trabalhar com autenticação ou autorização:
+
+- respeitar o padrão JWT existente;
+- não expor tokens em logs;
+- não salvar segredos no repositório;
+- não commitar `.env`;
+- validar permissões quando necessário;
+- evitar retornar dados sensíveis na API;
+- manter mensagens de erro seguras.
+
+---
+
+## 19. Testes e validação backend
+
+Quando alterar código backend, validar conforme o escopo da tarefa.
+
+Validações possíveis:
+
+- testes unitários com Jest;
+- testes de integração, quando existirem;
+- execução de scripts já definidos no `package.json`;
+- validação manual de endpoint;
+- verificação de lint/build, quando disponível;
+- revisão de queries e transactions.
+
+O agente deve informar:
+
+- comandos executados;
+- resultado das validações;
+- o que não conseguiu validar;
+- riscos pendentes.
+
+Não declarar que testou se não executou o teste.
+
+---
+
+## 20. Regras para alteração de rotas
+
+Ao criar ou alterar rota, verificar:
+
+- método HTTP correto;
+- path coerente;
+- autenticação necessária;
+- autorização necessária;
+- validação de payload;
+- parâmetros de rota;
+- query params;
+- status HTTP;
+- formato de resposta;
+- tratamento de erro;
+- documentação em `farmacia/swagger.md`;
+- compatibilidade com frontend.
+
+Não criar rotas duplicadas.
+
+Antes de criar rota nova, procurar se já existe rota equivalente.
+
+---
+
+## 21. Regras para queries e Knex
+
+Ao criar ou alterar queries:
+
+- preferir Knex quando for o padrão do módulo;
+- evitar SQL duplicado;
+- usar parâmetros/bindings;
+- evitar concatenação insegura de SQL;
+- respeitar transaction quando necessário;
+- validar schema correto;
+- revisar impacto em performance;
+- consultar Marcos, especialista MySQL, em mudanças sensíveis.
+
+Nunca executar operação destrutiva sem autorização explícita.
+
+---
+
+## 22. Regras para commits
+
+Antes de sugerir commit, verificar:
+
+```bash
+git status
+```
+
+Não commitar:
+
+- `.env`;
+- tokens;
+- senhas;
+- credenciais;
+- chaves privadas;
+- dumps sensíveis;
+- arquivos temporários;
+- logs desnecessários.
+
+Mensagem de commit sugerida para alterações neste arquivo:
+
+```bash
+git commit -m "Atualiza regras backend dos agentes do projeto farmacia"
+```
+
+---
+
+## 23. Conduta esperada da Ana Carolina
+
+A Ana Carolina deve:
+
+- respeitar o `AGENTS.override.md`;
+- consultar memória versionada antes de tarefas relevantes;
+- consultar Context7 antes de criar ou modificar código;
+- consultar MCP Farmácia quando aplicável;
+- aplicar a skill `express-rest-api` quando trabalhar com APIs REST;
+- preservar padrões existentes;
+- evitar duplicação de funções;
+- priorizar `utils/` para funções reutilizáveis;
+- manter controller fino;
+- manter service com regra de negócio;
+- manter repository/query separado;
+- usar transactions em operações críticas;
+- atualizar documentação da API quando alterar rotas;
+- informar validações feitas e pendências.
+
+A Ana Carolina deve evitar:
+
+- alterar contratos sem avisar;
+- criar rota duplicada;
+- duplicar função existente;
+- escrever no schema `fsph_ambulatorio`;
+- recriar tabelas;
+- alterar fluxo de estoque sem transaction;
+- alterar fluxo de requisição sem aprovação;
+- reabrir inventário fechado;
+- salvar dados sensíveis em memória ou commits.
+
+---
+
+## 24. Resumo das regras absolutas do backend
+
+1. `AGENTS.override.md` tem prioridade sobre este arquivo.
+2. Backend só pode ser alterado com autorização explícita do Ovidio.
+3. Consultar `memories/context-summary.md` antes de tarefa backend relevante.
+4. Consultar Context7 antes de criar ou alterar código backend.
+5. Consultar MCP Farmácia quando a tarefa depender de contexto local do projeto.
+6. Aplicar a skill `express-rest-api` em tarefas de API REST.
+7. Não duplicar funções; usar `utils/` para reaproveitamento.
+8. Controller deve ser fino.
+9. Service deve conter regra de negócio.
+10. Repository/query deve concentrar acesso ao banco.
+11. Toda movimentação de estoque deve usar transaction.
+12. Requisição só baixa estoque após aprovação.
+13. Inventário fechado não pode ser reaberto.
+14. Estoque é controlado por depósito + medicamento + lote.
+15. Nunca escrever no schema `fsph_ambulatorio`.
+16. Nunca recriar tabelas sem autorização explícita.
+17. Ao criar, modificar ou excluir rota, atualizar `farmacia/swagger.md` usando o fluxo de `swagger/swagger-docs.js`.
+18. Nunca salvar ou commitar tokens, senhas, chaves, credenciais ou dados sensíveis.
+
+---
+
+Fim do arquivo.
