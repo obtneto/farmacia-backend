@@ -3055,9 +3055,12 @@
             "description": "Unidades internas por caixa."
           },
           "med_bona_codigo": {
-            "type": "string",
+            "type": [
+              "string",
+              "null"
+            ],
             "example": "ABC123",
-            "description": "Codigo Boname relacionado."
+            "description": "Codigo Boname relacionado. Envie null quando nao houver vinculo."
           },
           "med_alert": {
             "type": "integer",
@@ -3065,9 +3068,12 @@
             "description": "Indicador de alerta do medicamento."
           },
           "med_diag_id": {
-            "type": "integer",
+            "type": [
+              "integer",
+              "null"
+            ],
             "example": 12,
-            "description": "ID do diagnostico relacionado."
+            "description": "ID do diagnostico relacionado. Envie null quando nao houver vinculo."
           },
           "med_ativo": {
             "type": "integer",
@@ -3089,9 +3095,7 @@
           "med_max",
           "med_min",
           "med_ui_cx",
-          "med_bona_codigo",
           "med_alert",
-          "med_diag_id",
           "med_ativo"
         ]
       },

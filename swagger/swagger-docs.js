@@ -57,7 +57,7 @@ const REQUEST_BODY_SCHEMAS = {
   'POST /parametros/medicamentos/salvar': {
     componentName: 'MedicamentosSalvarPayload',
     description: 'Payload para atualizar um medicamento.',
-    required: ['med_id', 'med_descr', 'med_descr_coml', 'med_und', 'med_tipo_codigo', 'med_tipo_med', 'med_max', 'med_min', 'med_ui_cx', 'med_bona_codigo', 'med_alert', 'med_diag_id', 'med_ativo'],
+    required: ['med_id', 'med_descr', 'med_descr_coml', 'med_und', 'med_tipo_codigo', 'med_tipo_med', 'med_max', 'med_min', 'med_ui_cx', 'med_alert', 'med_ativo'],
     properties: {
       med_id: { type: 'integer', example: 101, description: 'ID do medicamento.' },
       med_descr: { type: 'string', example: 'MEDICAMENTO EXEMPLO', description: 'Descricao principal do medicamento.' },
@@ -68,9 +68,9 @@ const REQUEST_BODY_SCHEMAS = {
       med_max: { type: 'number', example: 100, description: 'Estoque maximo sugerido.' },
       med_min: { type: 'number', example: 10, description: 'Estoque minimo sugerido.' },
       med_ui_cx: { type: 'number', example: 20, description: 'Unidades internas por caixa.' },
-      med_bona_codigo: { type: 'string', example: 'ABC123', description: 'Codigo Boname relacionado.' },
+      med_bona_codigo: { type: ['string', 'null'], example: 'ABC123', description: 'Codigo Boname relacionado. Envie null quando nao houver vinculo.' },
       med_alert: { type: 'integer', example: 1, description: 'Indicador de alerta do medicamento.' },
-      med_diag_id: { type: 'integer', example: 12, description: 'ID do diagnostico relacionado.' },
+      med_diag_id: { type: ['integer', 'null'], example: 12, description: 'ID do diagnostico relacionado. Envie null quando nao houver vinculo.' },
       med_ativo: { type: 'integer', enum: [0, 1], example: 1, description: 'Indicador de status ativo.' },
     },
   },

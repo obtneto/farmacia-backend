@@ -24,8 +24,6 @@ export default class Controller_Medicamentos {
 
             const pesq: string = String(req.params.pesq || '*');
 
-            console.log('pesq', pesq);
-
             if (!pesq) {
                 const error = new Error('Texto de pesquisa não informado');
                 error.statusCode = 400;
@@ -55,7 +53,7 @@ export default class Controller_Medicamentos {
         const resdata: iresdata = {
           err: 0,
           msg: '',
-          status: 0,
+          status: 200,
           data: null
         };
         
@@ -151,27 +149,71 @@ export default class Controller_Medicamentos {
 
             void await db.Begin();
 
-            const med_id: number = Number(req.body.med_id);
-            const med_descr = String(req.body.med_descr).trim().toLocaleUpperCase();
-            const med_descr_coml = String(req.body.med_descr_coml).trim().toLocaleUpperCase();
-            const med_und = String(req.body.med_und).trim().toLocaleUpperCase();
-            const med_tipo_codigo = String(req.body.med_tipo_codigo).trim().toLocaleUpperCase();
-            const med_tipo_med = String(req.body.med_tipo_med).trim().toLocaleUpperCase();
-            const med_max = Number(req.body.med_max);
-            const med_min = Number(req.body.med_min);
-            const med_ui_cx = Number(req.body.med_ui_cx);
-            const med_bona_codigo = String(req.body.med_bona_codigo).trim().toLocaleUpperCase();
-            const med_alert = Number(req.body.med_alert);
-            const med_diag_id = Number(req.body.med_diag_id);
-            const med_ativo: 0 | 1 = Number(req.body.med_ativo) as 0 | 1;
+            const med_id: number = Number(req.body.med_id || 0);
+            const med_descr = String(req.body.med_descr || '').trim().toLocaleUpperCase();
+            const med_descr_coml = String(req.body.med_descr_coml || '').trim().toLocaleUpperCase();
+            const med_und = String(req.body.med_und || '').trim().toLocaleUpperCase();
+            const med_tipo_codigo = String(req.body.med_tipo_codigo || '').trim().toLocaleUpperCase();
+            const med_tipo_med = String(req.body.med_tipo_med || '').trim().toLocaleUpperCase();
+            const med_max = Number(req.body.med_max || 0);
+            const med_min = Number(req.body.med_min || 0);
+            const med_ui_cx = Number(req.body.med_ui_cx || 0);
+            const med_bona_codigo = typeof req.body.med_bona_codigo === 'string'
+                ? req.body.med_bona_codigo.trim().toLocaleUpperCase()
+                : null;
+            const med_alert = Number(req.body.med_alert || 0);
+            const med_diag_id = req.body.med_diag_id === null || req.body.med_diag_id === undefined || req.body.med_diag_id === ''
+                ? null
+                : Number(req.body.med_diag_id);
+            const med_ativo: 0 | 1 = Number(req.body.med_ativo || 0) === 1 ? 1 : 0;
 
-            if (med_id === 0) {
-                const error = new Error('ID do medicamento não informado');
+            if (!med_descr) {
+                const error = new Error('Descricao do medicamento nao informada');
+                error.statusCode = 400;
+                throw error;
+            }
+
+            if (!med_descr_coml) {
+                const error = new Error('Descricao comercial nao informada');
+                error.statusCode = 400;
+                throw error;
+            }
+
+            if (!med_und) {
+                const error = new Error('Unidade do medicamento nao informada');
+                error.statusCode = 400;
+                throw error;
+            }
+
+            if (!med_tipo_codigo) {
+                const error = new Error('Tipo de medicamento nao informado');
+                error.statusCode = 400;
+                throw error;
+            }
+
+            if (!med_tipo_med) {
+                const error = new Error('Categoria do medicamento nao informada');
+                error.statusCode = 400;
+                throw error;
+            }
+
+            if (med_diag_id !== null && Number.isNaN(med_diag_id)) {
+                const error = new Error('Diagnostico invalido');
+                error.statusCode = 400;
+                throw error;
+            }
+
+            if (req.body.med_ativo === undefined) {
+                const error = new Error('Ativo nao informado');
                 error.statusCode = 400;
                 throw error;
             }
 
             const medicamentos = new Medicamentos(db.connection);
+
+            if (med_id > 0) {
+                void await medicamentos.BuscarPorId(med_id);
+            }
 
             medicamentos.med_id = med_id;
             medicamentos.med_descr = med_descr;

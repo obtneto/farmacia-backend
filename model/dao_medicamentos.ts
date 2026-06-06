@@ -3,7 +3,6 @@ import BaseModel, {iBaseModel} from "./BaseModel.js";
 
 export interface iMedicamentosFields {
     med_id : number,
-    med_codigo : string,
     med_descr : string,
     med_descr_coml: string,
     med_und: string,
@@ -12,10 +11,10 @@ export interface iMedicamentosFields {
     med_max: number,
     med_min: number,
     med_ui_cx: number,
-    med_bona_codigo: string,
+    med_bona_codigo: string | null,
     med_alert: number,
     med_ativo : 0 | 1,
-    med_diag_id : number,
+    med_diag_id : number | null,
 }
 
 export default class Medicamentos extends BaseModel implements iMedicamentosFields, iBaseModel {
@@ -28,7 +27,6 @@ export default class Medicamentos extends BaseModel implements iMedicamentosFiel
 
         const initialFields: iMedicamentosFields = {
             med_id: 0,
-            med_codigo: '',
             med_descr: '',
             med_descr_coml: '',
             med_und: '',
@@ -37,10 +35,10 @@ export default class Medicamentos extends BaseModel implements iMedicamentosFiel
             med_max: 0,
             med_min: 0,
             med_ui_cx: 0,
-            med_bona_codigo: '',
+            med_bona_codigo: null,
             med_alert: 0,
             med_ativo: 0,
-            med_diag_id: 0,
+            med_diag_id: null,
         }
 
         super(connection,'tb_medicamentos',initialFields,'med_id'); 
@@ -48,9 +46,6 @@ export default class Medicamentos extends BaseModel implements iMedicamentosFiel
 
     set med_id(id: number) { this._fields.med_id = id;}
     get med_id(): number {return this._fields.med_id;}
-
-    set med_codigo(codigo: string) { this._fields.med_codigo = codigo;}
-    get med_codigo(): string {return this._fields.med_codigo;}
 
     set med_descr(descr: string) { this._fields.med_descr = descr;}
     get med_descr(): string {return this._fields.med_descr;}
@@ -76,14 +71,14 @@ export default class Medicamentos extends BaseModel implements iMedicamentosFiel
     set med_ui_cx(ui_cx: number) { this._fields.med_ui_cx = ui_cx;}
     get med_ui_cx(): number {return this._fields.med_ui_cx;}
 
-    set med_bona_codigo(bona_codigo: string) { this._fields.med_bona_codigo = bona_codigo;}
-    get med_bona_codigo(): string {return this._fields.med_bona_codigo;}
+    set med_bona_codigo(bona_codigo: string | null) { this._fields.med_bona_codigo = bona_codigo;}
+    get med_bona_codigo(): string | null {return this._fields.med_bona_codigo;}
 
     set med_alert(alert: number) { this._fields.med_alert = alert;}
     get med_alert(): number {return this._fields.med_alert;}
     
-    set med_diag_id(diag_id: number) { this._fields.med_diag_id = diag_id;}
-    get med_diag_id(): number {return this._fields.med_diag_id;}
+    set med_diag_id(diag_id: number | null) { this._fields.med_diag_id = diag_id;}
+    get med_diag_id(): number | null {return this._fields.med_diag_id;}
     
     set med_ativo(ativo: 0 | 1) { this._fields.med_ativo = ativo;}
     get med_ativo(): 0 | 1 {return this._fields.med_ativo;}
@@ -93,7 +88,7 @@ export default class Medicamentos extends BaseModel implements iMedicamentosFiel
         let query: string = `SELECT * FROM tb_medicamentos`;
 
         if (pesq !== '*') {
-            query += " WHERE med_descr LIKE :pesq";
+            query += " WHERE med_descr LIKE :pesq OR med_descr_coml LIKE :pesq OR med_bona_codigo LIKE :pesq";
         }
 
         const [rows] = await this.ExecuteQuery(query, {pesq: `%${pesq}%`}) as RowDataPacket[];
@@ -106,7 +101,7 @@ export default class Medicamentos extends BaseModel implements iMedicamentosFiel
         let query : string = `SELECT * FROM tb_medicamentos WHERE med_ativo = 1`;
 
         if (pesq !== '*') {
-            query += " AND med_descr LIKE :pesq";
+            query += " AND (med_descr LIKE :pesq OR med_descr_coml LIKE :pesq OR med_bona_codigo LIKE :pesq)";
         }
 
         const [rows] = await this.ExecuteQuery(query, {pesq: `%${pesq}%`}) as RowDataPacket[];
