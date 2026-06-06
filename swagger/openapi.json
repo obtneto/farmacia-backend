@@ -172,6 +172,86 @@
         }
       }
     },
+    "/parametros/locais/listar_ativos/{pesq}": {
+      "get": {
+        "tags": [
+          "Locais"
+        ],
+        "summary": "GET parametros locais listar ativos",
+        "parameters": [
+          {
+            "name": "pesq",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Parametro de rota pesq."
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Bearer token. Necessario quando a autenticacao estiver habilitada no ambiente."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Requisicao invalida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Nao autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso nao encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro interno",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/parametros/locais/salvar": {
       "post": {
         "tags": [
@@ -508,6 +588,86 @@
               "type": "string"
             },
             "description": "Parametro de rota bona_id."
+          },
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Bearer token. Necessario quando a autenticacao estiver habilitada no ambiente."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Requisicao invalida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Nao autenticado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Recurso nao encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro interno",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/parametros/boname/imprimir/{pesq}": {
+      "get": {
+        "tags": [
+          "Boname"
+        ],
+        "summary": "GET parametros boname imprimir",
+        "parameters": [
+          {
+            "name": "pesq",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Parametro de rota pesq."
           },
           {
             "name": "Authorization",
@@ -1055,12 +1215,12 @@
         }
       }
     },
-    "/parametros/tipos_produtos/listar/{pesq}": {
+    "/parametros/tipos_medicamentos/listar/{pesq}": {
       "get": {
         "tags": [
-          "Tipos Produtos"
+          "Tipos Medicamentos"
         ],
-        "summary": "GET parametros tipos produtos listar",
+        "summary": "GET parametros tipos medicamentos listar",
         "parameters": [
           {
             "name": "pesq",
@@ -1135,12 +1295,12 @@
         }
       }
     },
-    "/parametros/tipos_produtos/buscar/{tipo_id}": {
+    "/parametros/tipos_medicamentos/buscar/{tipo_id}": {
       "get": {
         "tags": [
-          "Tipos Produtos"
+          "Tipos Medicamentos"
         ],
-        "summary": "GET parametros tipos produtos buscar",
+        "summary": "GET parametros tipos medicamentos buscar",
         "parameters": [
           {
             "name": "tipo_id",
@@ -1215,12 +1375,12 @@
         }
       }
     },
-    "/parametros/tipos_produtos/buscar-codigo/{tipo_codigo}": {
+    "/parametros/tipos_medicamentos/buscar-codigo/{tipo_codigo}": {
       "get": {
         "tags": [
-          "Tipos Produtos"
+          "Tipos Medicamentos"
         ],
-        "summary": "GET parametros tipos produtos buscar-codigo",
+        "summary": "GET parametros tipos medicamentos buscar-codigo",
         "parameters": [
           {
             "name": "tipo_codigo",
@@ -1295,12 +1455,12 @@
         }
       }
     },
-    "/parametros/tipos_produtos/salvar": {
+    "/parametros/tipos_medicamentos/salvar": {
       "post": {
         "tags": [
-          "Tipos Produtos"
+          "Tipos Medicamentos"
         ],
-        "summary": "POST parametros tipos produtos salvar",
+        "summary": "POST parametros tipos medicamentos salvar",
         "parameters": [
           {
             "name": "Authorization",
@@ -1369,19 +1529,20 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/TiposProdutosSalvarPayload"
+                "type": "object",
+                "additionalProperties": true
               }
             }
           }
         }
       }
     },
-    "/parametros/tipos_produtos/excluir/{tipo_id}": {
+    "/parametros/tipos_medicamentos/excluir/{tipo_id}": {
       "delete": {
         "tags": [
-          "Tipos Produtos"
+          "Tipos Medicamentos"
         ],
-        "summary": "DELETE parametros tipos produtos excluir",
+        "summary": "DELETE parametros tipos medicamentos excluir",
         "parameters": [
           {
             "name": "tipo_id",
@@ -3137,28 +3298,18 @@
       },
       "EntradasSalvarPayload": {
         "type": "object",
-        "description": "Payload para salvar uma entrada de estoque.",
+        "description": "Payload para salvar uma entrada de estoque com cabeçalho e itens.",
         "properties": {
+          "ent_id": {
+            "type": "integer",
+            "example": 0,
+            "description": "ID da entrada. Use 0 para criar uma nova entrada."
+          },
           "ent_date": {
             "type": "string",
-            "format": "date-time",
-            "example": "2026-06-03T10:00:00.000Z",
-            "description": "Data da entrada."
-          },
-          "ent_med_id": {
-            "type": "integer",
-            "example": 101,
-            "description": "ID do medicamento."
-          },
-          "ent_lote": {
-            "type": "string",
-            "example": "LOTE-001",
-            "description": "Lote da entrada."
-          },
-          "ent_qtde": {
-            "type": "number",
-            "example": 150,
-            "description": "Quantidade recebida."
+            "format": "date",
+            "example": "2026-06-06",
+            "description": "Data do cabeçalho da entrada."
           },
           "ent_doc": {
             "type": "string",
@@ -3169,15 +3320,55 @@
             "type": "string",
             "example": "FORNECEDOR XYZ",
             "description": "Nome do fornecedor."
+          },
+          "ent_dep_id": {
+            "type": "integer",
+            "example": 2,
+            "description": "Depósito usado para refletir a movimentação no estoque."
+          },
+          "itens": {
+            "type": "array",
+            "description": "Itens da entrada persistidos em tb_itens_entradas.",
+            "items": {
+              "type": "object",
+              "required": [
+                "ent_med_id",
+                "ent_lote",
+                "ent_lote_validade",
+                "ent_qtde"
+              ],
+              "properties": {
+                "ent_med_id": {
+                  "type": "integer",
+                  "example": 101,
+                  "description": "ID do medicamento do item."
+                },
+                "ent_lote": {
+                  "type": "string",
+                  "example": "LOTE-001",
+                  "description": "Lote do item."
+                },
+                "ent_lote_validade": {
+                  "type": "string",
+                  "format": "date",
+                  "example": "2027-01-31",
+                  "description": "Validade do lote do item."
+                },
+                "ent_qtde": {
+                  "type": "number",
+                  "example": 150,
+                  "description": "Quantidade recebida do item."
+                }
+              }
+            }
           }
         },
         "required": [
           "ent_date",
-          "ent_med_id",
-          "ent_lote",
-          "ent_qtde",
           "ent_doc",
-          "ent_fornecido_por"
+          "ent_fornecido_por",
+          "ent_dep_id",
+          "itens"
         ]
       },
       "RequisicoesSalvarPayload": {

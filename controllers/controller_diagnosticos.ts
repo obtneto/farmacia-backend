@@ -83,7 +83,6 @@ export default class Controller_Diagnosticos{
 
     }
 
-
     static async Buscar(req: Request, res: Response) {
 
         // Inicializa infraestrutura da requisicao e o envelope padrao da resposta.
@@ -166,9 +165,8 @@ export default class Controller_Diagnosticos{
 
             // Carrega o registro atual quando houver ID e persiste a alteracao.
             const diagnosticos = new Diagnosticos(db.connection);
-            if (diag_id > 0) {
-                void await diagnosticos.BuscarPorId(diag_id);
-            }
+            
+            void await diagnosticos.BuscarPorId(diag_id);
 
             diagnosticos.diag_id = diag_id;
             diagnosticos.diag_descr = diag_descr.toLocaleUpperCase();

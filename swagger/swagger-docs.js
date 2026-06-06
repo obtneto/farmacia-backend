@@ -87,15 +87,28 @@ const REQUEST_BODY_SCHEMAS = {
   },
   'POST /entradas/salvar': {
     componentName: 'EntradasSalvarPayload',
-    description: 'Payload para salvar uma entrada de estoque.',
-    required: ['ent_date', 'ent_med_id', 'ent_lote', 'ent_qtde', 'ent_doc', 'ent_fornecido_por'],
+    description: 'Payload para salvar uma entrada de estoque com cabeçalho e itens.',
+    required: ['ent_date', 'ent_doc', 'ent_fornecido_por', 'ent_dep_id', 'itens'],
     properties: {
-      ent_date: { type: 'string', format: 'date-time', example: '2026-06-03T10:00:00.000Z', description: 'Data da entrada.' },
-      ent_med_id: { type: 'integer', example: 101, description: 'ID do medicamento.' },
-      ent_lote: { type: 'string', example: 'LOTE-001', description: 'Lote da entrada.' },
-      ent_qtde: { type: 'number', example: 150, description: 'Quantidade recebida.' },
+      ent_id: { type: 'integer', example: 0, description: 'ID da entrada. Use 0 para criar uma nova entrada.' },
+      ent_date: { type: 'string', format: 'date', example: '2026-06-06', description: 'Data do cabeçalho da entrada.' },
       ent_doc: { type: 'string', example: 'NF-12345', description: 'Documento fiscal ou referencia da entrada.' },
       ent_fornecido_por: { type: 'string', example: 'FORNECEDOR XYZ', description: 'Nome do fornecedor.' },
+      ent_dep_id: { type: 'integer', example: 2, description: 'Depósito usado para refletir a movimentação no estoque.' },
+      itens: {
+        type: 'array',
+        description: 'Itens da entrada persistidos em tb_itens_entradas.',
+        items: {
+          type: 'object',
+          required: ['ent_med_id', 'ent_lote', 'ent_lote_validade', 'ent_qtde'],
+          properties: {
+            ent_med_id: { type: 'integer', example: 101, description: 'ID do medicamento do item.' },
+            ent_lote: { type: 'string', example: 'LOTE-001', description: 'Lote do item.' },
+            ent_lote_validade: { type: 'string', format: 'date', example: '2027-01-31', description: 'Validade do lote do item.' },
+            ent_qtde: { type: 'number', example: 150, description: 'Quantidade recebida do item.' },
+          },
+        },
+      },
     },
   },
   'POST /requisicoes/salvar': {
