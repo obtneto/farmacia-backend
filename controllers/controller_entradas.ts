@@ -79,6 +79,7 @@ function normalizeItemPayload(item: iSalvarEntradaItemPayload, index: number): i
     }
 
     return {
+        ite_id: 0,
         ite_ent_id: 0,
         ite_ent_med_id,
         ite_ent_lote,
@@ -235,7 +236,7 @@ export default class Controller_Entradas {
                 } catch (error: any) {
                     if (error?.code === 'ER_DUP_ENTRY') {
                         throw createHttpError(
-                            `O medicamento ${item.ite_ent_med_id} já existe em tb_itens_entradas. Verifique a chave atual da tabela antes de repetir esse medicamento em outra entrada.`,
+                            `Conflito de índice ao gravar o item ${item.ite_id || 'novo'} da entrada ${item.ite_ent_id}. Verifique se os índices de tb_itens_entradas permitem este medicamento/lote dentro da mesma entrada.`,
                             409
                         );
                     }
