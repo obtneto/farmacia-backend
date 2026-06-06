@@ -6,6 +6,7 @@ export interface iTiposMedicamentosFields {
     tipo_codigo : string,
     tipo_descr : string,
     tipo_ativo : 0 | 1
+    tipo_vincul : string | null
 }
 
 
@@ -21,7 +22,8 @@ export default class TiposMedicamentos extends BaseModel implements iBaseModel, 
             tipo_id: 0,
             tipo_codigo: '',
             tipo_descr: '',
-            tipo_ativo: 0
+            tipo_ativo: 0,
+            tipo_vincul: null
         };
 
         super(connection, 'tb_tipos_medicamentos', initFields, 'tipo_id');
@@ -42,6 +44,9 @@ export default class TiposMedicamentos extends BaseModel implements iBaseModel, 
     set tipo_ativo(ativo : 0 | 1) { this._fields.tipo_ativo = ativo;}
     get tipo_ativo() : 0 | 1 {return this._fields.tipo_ativo;}
 
+    set tipo_vincul(vincul : string | null) { this._fields.tipo_vincul = vincul;}
+    get tipo_vincul() : string | null {return this._fields.tipo_vincul;}
+    
     public async BuscarPorCodigo(tipo_codigo : string) : Promise<iTiposMedicamentosFields>{
 
         const query : string = "SELECT * FROM tb_tipos_medicamentos WHERE tipo_codigo = :tipo_codigo";
