@@ -88,11 +88,11 @@ const REQUEST_BODY_SCHEMAS = {
   'POST /entradas/salvar': {
     componentName: 'EntradasSalvarPayload',
     description: 'Payload para salvar uma entrada de estoque com cabeçalho e itens.',
-    required: ['ent_date', 'ent_doc', 'ent_fornecido_por', 'ent_dep_id', 'itens'],
+    required: ['ent_date', 'ent_fornecido_por', 'ent_dep_id', 'itens'],
     properties: {
       ent_id: { type: 'integer', example: 0, description: 'ID da entrada. Use 0 para criar uma nova entrada.' },
       ent_date: { type: 'string', format: 'date', example: '2026-06-06', description: 'Data do cabeçalho da entrada.' },
-      ent_doc: { type: 'string', example: 'NF-12345', description: 'Documento fiscal ou referencia da entrada.' },
+      ent_doc: { type: 'string', example: '202606123456', description: 'Documento fiscal ou referencia da entrada. Se vier nulo, indefinido ou zero, o backend gera automaticamente um numero no formato AAAAMM+sequencia.' },
       ent_fornecido_por: { type: 'string', example: 'FORNECEDOR XYZ', description: 'Nome do fornecedor.' },
       ent_dep_id: { type: 'integer', example: 2, description: 'Depósito usado para refletir a movimentação no estoque.' },
       itens: {

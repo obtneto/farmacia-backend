@@ -3313,8 +3313,8 @@
           },
           "ent_doc": {
             "type": "string",
-            "example": "NF-12345",
-            "description": "Documento fiscal ou referencia da entrada."
+            "example": "202606123456",
+            "description": "Documento fiscal ou referencia da entrada. Se vier nulo, indefinido ou zero, o backend gera automaticamente um numero no formato AAAAMM+sequencia."
           },
           "ent_fornecido_por": {
             "type": "string",
@@ -3365,7 +3365,6 @@
         },
         "required": [
           "ent_date",
-          "ent_doc",
           "ent_fornecido_por",
           "ent_dep_id",
           "itens"

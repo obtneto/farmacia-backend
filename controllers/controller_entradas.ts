@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { randomInt } from "crypto";
 import Database, { iDatabase } from "../connections/dbconn.js";
 import Entradas from "../model/dao_entradas.js";
 import Estoque from "../model/dao_estoque.js";
@@ -17,7 +18,7 @@ interface iSalvarEntradaItemPayload {
 interface iSalvarEntradaPayload {
     ent_id?: number;
     ent_date: string;
-    ent_doc: string;
+    ent_doc?: string | number | null;
     ent_fornecido_por: string;
     ent_dep_id: number;
     itens: iSalvarEntradaItemPayload[];
@@ -38,10 +39,53 @@ function createHttpError(message: string, statusCode: number): Error & { statusC
     return error;
 }
 
+function generateEntradaDocumento(referenceDate: Date): string {
+    const baseDate = Number.isNaN(referenceDate.getTime()) ? new Date() : referenceDate;
+    const year = String(baseDate.getFullYear());
+    const month = String(baseDate.getMonth() + 1).padStart(2, '0');
+    const sequence = String(randomInt(100000, 1000000));
+
+    return `${year}${month}${sequence}`;
+}
+
+function normalizeEntradaDocumento(rawValue: iSalvarEntradaPayload['ent_doc'], referenceDate: Date): string {
+    if (rawValue === null || rawValue === undefined) {
+        return generateEntradaDocumento(referenceDate);
+    }
+
+    if (typeof rawValue === 'number') {
+        return rawValue === 0
+            ? generateEntradaDocumento(referenceDate)
+            : String(rawValue).trim().toLocaleUpperCase();
+    }
+
+    const normalizedValue = String(rawValue).trim().toLocaleUpperCase();
+
+    if (!normalizedValue || /^0+$/.test(normalizedValue)) {
+        return generateEntradaDocumento(referenceDate);
+    }
+
+    return normalizedValue;
+}
+
+function shouldAutoGenerateEntradaDocumento(rawValue: iSalvarEntradaPayload['ent_doc']): boolean {
+    if (rawValue === null || rawValue === undefined) {
+        return true;
+    }
+
+    if (typeof rawValue === 'number') {
+        return rawValue === 0;
+    }
+
+    const normalizedValue = String(rawValue).trim().toLocaleUpperCase();
+    return !normalizedValue || /^0+$/.test(normalizedValue) || normalizedValue === 'NULL' || normalizedValue === 'UNDEFINED';
+}
+
 function normalizeHeaderPayload(body: iSalvarEntradaPayload) {
     const ent_id = Number(body.ent_id || 0);
     const ent_date = new Date(body.ent_date);
-    const ent_doc = String(body.ent_doc || '').trim().toLocaleUpperCase();
+    const ent_doc_auto_generated = shouldAutoGenerateEntradaDocumento(body.ent_doc);
+    const ent_doc = normalizeEntradaDocumento(body.ent_doc, ent_date);
     const ent_fornecido_por = String(body.ent_fornecido_por || '').trim().toLocaleUpperCase();
     const ent_dep_id = Number(body.ent_dep_id || 0);
     const itens = Array.isArray(body.itens) ? body.itens : [];
@@ -50,6 +94,7 @@ function normalizeHeaderPayload(body: iSalvarEntradaPayload) {
         ent_id,
         ent_date,
         ent_doc,
+        ent_doc_auto_generated,
         ent_fornecido_por,
         ent_dep_id,
         itens
@@ -193,10 +238,6 @@ export default class Controller_Entradas {
                 throw createHttpError('Data da entrada é obrigatória.', 400);
             }
 
-            if (!payload.ent_doc) {
-                throw createHttpError('Documento da entrada é obrigatório.', 400);
-            }
-
             if (!payload.ent_fornecido_por) {
                 throw createHttpError('Fornecedor da entrada é obrigatório.', 400);
             }
@@ -262,6 +303,8 @@ export default class Controller_Entradas {
             resdata.msg = 'Entrada salva com sucesso';
             resdata.data = {
                 ent_id: entradas.ent_id,
+                ent_doc: entradas.ent_doc,
+                ent_doc_auto_generated: payload.ent_doc_auto_generated,
                 total_itens: itens.length
             };
         } catch (error: any) {
