@@ -4,6 +4,44 @@ import { Request, Response } from 'express';
 import { iresdata } from './interface_controllers.js';
 import { applyControllerError } from "../utils/controllerError.js";
 
+function isValidCnpj(value: string): boolean {
+    const digits = String(value || '').replace(/\D/g, '');
+
+    if (digits.length !== 14 || /^(\d)\1{13}$/.test(digits)) {
+        return false;
+    }
+
+    let length = 12;
+    let numbers = digits.substring(0, length);
+    let sum = 0;
+    let pos = length - 7;
+
+    for (let index = length; index >= 1; index -= 1) {
+        sum += Number(numbers.charAt(length - index)) * pos;
+        pos = pos === 2 ? 9 : pos - 1;
+    }
+
+    let result = sum % 11 < 2 ? 0 : 11 - (sum % 11);
+
+    if (result !== Number(digits.charAt(12))) {
+        return false;
+    }
+
+    length = 13;
+    numbers = digits.substring(0, length);
+    sum = 0;
+    pos = length - 7;
+
+    for (let index = length; index >= 1; index -= 1) {
+        sum += Number(numbers.charAt(length - index)) * pos;
+        pos = pos === 2 ? 9 : pos - 1;
+    }
+
+    result = sum % 11 < 2 ? 0 : 11 - (sum % 11);
+
+    return result === Number(digits.charAt(13));
+}
+
 export default class Controller_Fornecedores {
 
     static async Buscar(req: Request, res: Response) {
@@ -161,6 +199,11 @@ export default class Controller_Fornecedores {
 
             if (!for_telefone) {
                 const error = new Error('Telefone do fornecedor não informado');
+                error.statusCode = 400;
+                throw error;
+            }
+            if (for_cnpj && !isValidCnpj(for_cnpj)) {
+                const error = new Error('CNPJ do fornecedor inválido');
                 error.statusCode = 400;
                 throw error;
             }
