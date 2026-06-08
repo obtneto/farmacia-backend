@@ -27,3 +27,4 @@ certificate
 *.sln
 *.sw?
 *.key
+openapi*.json

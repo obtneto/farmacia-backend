@@ -3,7 +3,7 @@ import { Request, Response } from "express";
 import { applyControllerError } from "../utils/controllerError.js";
 import { iresdata } from "./interface_controllers.js";
 import Requisicoes from "../model/dao_requisicoes.js";
-import Gaucher from "../model/dao_gaucher.js";
+import DemandasEspecificas from "../model/dao_demanda_especificas.js";
 import Estoque from "../model/dao_estoque.js";
 
 // Coordena requisicoes e o fluxo de aprovacao com impacto em estoque.
@@ -246,6 +246,7 @@ export default class Controller_Requisicoes {
             const req_id = Number(req.params.req_id);
             const user_aprova = req.params.user_aprova ? String(req.params.user_aprova) : null;
             
+            // Validações de entrada
             if (!req_id || req_id <= 0) {
                 const error = new Error('ID da requisição não informado ou inválido') as any;
                 error.statusCode = 400;
@@ -257,11 +258,13 @@ export default class Controller_Requisicoes {
                 error.statusCode = 400;
                 throw error; 
             }
-
+            
+            // Instancia os DAOs necessários para o processo de aprovação, que impacta demandas específicas e estoque.
             const requisicoes = new Requisicoes(db.connection);
-            const gaucher = new Gaucher(db.connection);
+            const demandas = new DemandasEspecificas(db.connection);
             const estoque = new Estoque(db.connection);
 
+            // Buscar a requisição para obter os dados necessários para atualizar as demandas específicas e o estoque.
             const item = await requisicoes.BuscarPorId(req_id);
 
             if (!requisicoes.found) {
@@ -275,16 +278,19 @@ export default class Controller_Requisicoes {
 
             await requisicoes.Salvar();
 
-            await gaucher.BuscarPorPaciente(item.req_pac_id);
+            //Buscar pacientes com demandas específicas para atualizar as quantidades demandadas, caso existam. E atualizar o estoque.
+            await demandas.BuscarPorPaciente(item.req_pac_id);
 
-            if (gaucher.found) {
+            if (demandas.found) {
                 
-                gaucher.gua_qtde_medicamento -= item.req_qtde;
+                demandas.dem_qtde_medicamento -= item.req_qtde;
+                demandas.dem_qtde_doses -= item.req_qtde;
 
-                await gaucher.Salvar();
+                await demandas.Salvar();
 
             }
 
+            // Atualizar o estoque
             await estoque.BuscarPorItemEstoque(item.req_med_id,item.req_dep_id,item.req_lote);
 
             if (!estoque.found) {

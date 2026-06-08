@@ -9,6 +9,7 @@ import routes_tipos_produtos from './routes/routes_tipos_materias.js';
 import routes_diagnosticos from './routes/routes_diagnosticos.js';
 import routes_medicamentos from './routes/routes_medicamentos.js';
 import routes_requisicoes from './routes/routes_requisicoes.js';
+import routes_fornecedores from './routes/routes_fornecedores.js';
 import {globalErrorHandler} from './utils/ErrorMiddleware.js';
 import routes_entradas from './routes/routes_entradas.js';
 import morgan from 'morgan';
@@ -29,6 +30,12 @@ config({path:'../.env'})
 
 const app = express();
 const port : number = Number(process.env.PORT || 3000);
+const allowedOrigins = new Set([
+  'http://localhost',
+  'http://localhost:5173',
+  'http://172.23.42.84.110:5173',
+  'http://192.168.0.8:5173',
+]);
 
 console.clear();
 
@@ -41,7 +48,14 @@ app.use(express.json({
 }));
 
 app.use(cors({
-    origin: '*',
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.has(origin)) {
+            callback(null, true);
+            return;
+        }
+
+        callback(new Error(`Origin nao permitida: ${origin}`));
+    },
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
@@ -59,6 +73,7 @@ app.use('/parametros/tipos_produtos',routes_tipos_produtos);
 app.use('/parametros/diagnosticos', routes_diagnosticos);
 app.use('/parametros/medicamentos', routes_medicamentos);
 //app.use('/parametros/tipos_requisicoes', routes_tipos_requisicoes);
+app.use('/parametros/fornecedores', routes_fornecedores);
 app.use('/requisicoes', routes_requisicoes);
 app.use('/entradas', routes_entradas);
 
