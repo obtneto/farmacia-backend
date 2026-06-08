@@ -153,6 +153,17 @@ export default class Controller_Fornecedores {
                 throw error;
             }
 
+            if (!for_nome_fantasia) {
+                const error = new Error('Nome fantasia do fornecedor não informado');
+                error.statusCode = 400;
+                throw error;
+            }
+
+            if (!for_telefone) {
+                const error = new Error('Telefone do fornecedor não informado');
+                error.statusCode = 400;
+                throw error;
+            }
             if (req.body.for_ativo === undefined) {
                 const error = new Error('Ativo não informado');
                 error.statusCode = 400;
