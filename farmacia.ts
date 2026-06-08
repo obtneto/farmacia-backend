@@ -38,6 +38,15 @@ const allowedOrigins = new Set([
   'http://192.168.0.8:5173',
 ]);
 
+function isLoopbackOrigin(origin: string): boolean {
+    try {
+        const { hostname } = new URL(origin);
+        return hostname === 'localhost' || hostname === '127.0.0.1';
+    } catch {
+        return false;
+    }
+}
+
 console.clear();
 
 app.use(helmet());
@@ -50,7 +59,7 @@ app.use(express.json({
 
 app.use(cors({
     origin: (origin, callback) => {
-        if (!origin || allowedOrigins.has(origin)) {
+        if (!origin || allowedOrigins.has(origin) || isLoopbackOrigin(origin)) {
             callback(null, true);
             return;
         }
