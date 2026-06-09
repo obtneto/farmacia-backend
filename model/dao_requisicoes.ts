@@ -92,7 +92,7 @@ export default class Requisicoes extends BaseModel implements iRequisicoesFields
 
     public async ListarPorPeriodo(dat_ini: Date, dat_fim: Date, aprova: 0 | 1 = 0) : Promise<iRequisicoesFields[]>{
 
-        let query: string = `SELECT r.req_id as ID,r.req_date as data,p.nom_paciente as paciente, m.med_descr as medicamento, m.med_und as unidade, 
+        const query: string = `SELECT r.req_id as ID,r.req_date as data,p.nom_paciente as paciente, m.med_descr as medicamento, m.med_und as unidade, 
                              r.req_lote as lote,r.req_qtde as quantidade
                              FROM tb_requisicoes r
                              LEFT JOIN fsph_ambulatorio.tb_pacientes p ON r.req_pac_id = p.num_paciente
@@ -104,5 +104,5 @@ export default class Requisicoes extends BaseModel implements iRequisicoesFields
         return rows as iRequisicoesFields[];
 
     }
-   
+    
 }

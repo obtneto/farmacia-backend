@@ -59,8 +59,11 @@ export default class BaseModel implements iBaseModel{
         const fieldToSave = { ...this._fields };
 
         if (this._found) {
+
             query = this.buildUpdateQuery();
+
         } else {
+            
             this._fields[this._primaryKey] = await this.newId();
             fieldToSave[this._primaryKey] = this._fields[this._primaryKey];
             query = this.buildInsertQuery();
@@ -106,6 +109,7 @@ export default class BaseModel implements iBaseModel{
     }
 
     private buildUpdateQuery() {
+
         const fields = Object.keys(this._fields)
             .filter(f => f !== this._primaryKey)
             .map(f => `${f} = :${f}`)

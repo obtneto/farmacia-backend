@@ -226,7 +226,7 @@ export default class Controller_Requisicoes {
 
     }
 
-    static async AprovacaoPorIDRequisicao(req: Request, res: Response) {
+    static async AprovarRequisicao(req: Request, res: Response) {
 
         const db : iDatabase = new Database();
 
