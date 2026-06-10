@@ -36,7 +36,7 @@ Essa regra se aplica a todos os arquivos dentro de:
 farmacia/backend/
 ```
 
-A Ana Carolina pode:
+A Ana Carolina Rafael pode:
 
 - analisar erros;
 - revisar código;
@@ -56,14 +56,13 @@ Antes de criar, modificar, corrigir ou refatorar qualquer código backend, o age
 
 1. Ler e aplicar `farmacia/AGENTS.override.md`.
 2. Consultar `memories/context-summary.md`.
-3. Confirmar se há autorização explícita do Ovidio para alterar backend.
-4. Consultar Context7.
-5. Consultar MCP Farmácia, quando a tarefa envolver estrutura, banco, rotas, regras do projeto ou contexto técnico local.
-6. Consultar a skill backend aplicável, quando necessário.
-7. Implementar somente o escopo solicitado.
-8. Validar o resultado.
-9. Atualizar documentação da API, quando houver alteração de rota.
-10. Informar arquivos alterados, validações feitas e pendências.
+3. Consultar Context7.
+4. Consultar MCP Farmácia, quando a tarefa envolver estrutura, banco, rotas, regras do projeto ou contexto técnico local.
+5. Consultar a skill backend aplicável, quando necessário.
+6. Implementar somente o escopo solicitado.
+7. Validar o resultado.
+8. Atualizar documentação da API, quando houver alteração de rota.
+9. Informar arquivos alterados, validações feitas e pendências.
 
 
 ---
@@ -76,11 +75,8 @@ Bibliotecas e tópicos prioritários:
 
 - Node.js v24;
 - Express;
-- Fastify;
-- Knex.js;
 - JWT;
 - Zod;
-- Jest;
 - MySQL 8.4;
 - middlewares;
 - autenticação;
@@ -94,43 +90,7 @@ O agente não deve fingir que consultou o Context7.
 
 ---
 
-## 5. Uso obrigatório da memória versionada
-
-Antes de qualquer tarefa backend relevante, consultar:
-
-```txt
-memories/context-summary.md
-```
-
-A memória deve ser usada para identificar:
-
-- contexto atual do projeto;
-- decisões técnicas já tomadas;
-- regras obrigatórias;
-- estrutura backend existente;
-- padrões de DAO, controller, service e rotas;
-- pendências;
-- riscos conhecidos;
-- comandos já validados.
-
-Se a memória estiver ausente, vazia ou desatualizada, o agente deve informar isso ao Ovidio.
-
-A memória não pode sobrescrever uma instrução explícita atual do Ovidio.
-
-Nunca salvar na memória:
-
-- tokens;
-- senhas;
-- chaves privadas;
-- chaves de API;
-- credenciais;
-- dados sensíveis;
-- dumps confidenciais;
-- dados pessoais desnecessários.
-
----
-
-## 6. Uso obrigatório do MCP Farmácia
+## 5. Uso obrigatório do MCP Farmácia
 
 Consultar o MCP Farmácia quando a tarefa envolver:
 
@@ -152,7 +112,7 @@ Se o MCP estiver indisponível, o agente deve informar isso antes de implementar
 
 ---
 
-## 7. Objetivo da camada backend
+## 6. Objetivo da camada backend
 
 O backend deve implementar e manter:
 
@@ -170,7 +130,7 @@ O backend deve implementar e manter:
 
 ---
 
-## 8. Stack backend oficial
+## 7. Stack backend oficial
 
 Stack backend:
 
@@ -183,7 +143,7 @@ Não introduzir novas bibliotecas estruturais sem justificar tecnicamente e sem 
 
 ---
 
-## 9. Bancos de dados
+## 8. Bancos de dados
 
 Schemas oficiais:
 
@@ -202,7 +162,7 @@ Regras obrigatórias:
 
 ---
 
-## 10. Padrões obrigatórios de arquitetura backend
+## 9. Padrões obrigatórios de arquitetura backend
 
 Seguir os padrões existentes do projeto.
 
@@ -248,36 +208,7 @@ Não duplicar funções. Antes de criar uma função nova, verificar se já exis
 
 ---
 
-## 11. Regra obrigatória para documentação da API
-
-Ao criar, modificar ou excluir uma rota, atualizar a documentação da API.
-
-Arquivo principal:
-
-```txt
-farmacia/swagger.md
-```
-
-Script relacionado:
-
-```txt
-swagger/swagger-docs.js
-```
-
-Regra:
-
-- toda rota nova deve ser documentada;
-- toda alteração de contrato deve atualizar a documentação;
-- toda remoção de rota deve refletir na documentação;
-- exemplos de request/response devem estar coerentes com a implementação;
-- códigos HTTP devem estar documentados;
-- parâmetros obrigatórios e opcionais devem estar claros.
-
-Antes de finalizar uma alteração em rotas, executar ou orientar a execução do script de documentação, conforme o fluxo existente do projeto.
-
----
-
-## 12. Regra de chave primária
+## 10. Regra de chave primária
 
 Ao criar novos registros pela API, o campo de chave primária deve ser enviado como `0` ou omitido, conforme o contrato do endpoint.
 
@@ -287,7 +218,7 @@ Nenhum agente deve assumir manualmente o próximo ID sem verificar o contrato ex
 
 ---
 
-## 13. Validação e tratamento de erros
+## 11. Validação e tratamento de erros
 
 O backend deve:
 
@@ -302,7 +233,7 @@ O backend deve:
 
 ---
 
-## 14. Autenticação e segurança
+## 12. Autenticação e segurança
 
 Ao trabalhar com autenticação ou autorização:
 
@@ -316,7 +247,7 @@ Ao trabalhar com autenticação ou autorização:
 
 ---
 
-## 15. Testes e validação backend
+## 13. Testes e validação backend
 
 Quando alterar código backend, validar conforme o escopo da tarefa.
 
@@ -332,7 +263,7 @@ Não declarar que testou se não executou o teste.
 
 ---
 
-## 16. Regras para alteração de rotas
+## 14. Regras para alteração de rotas
 
 Ao criar ou alterar rota, verificar:
 
@@ -355,7 +286,7 @@ Antes de criar rota nova, procurar se já existe rota equivalente.
 
 ---
 
-## 1. Regras para queries
+## 15. Regras para queries
 
 Ao criar ou alterar queries:
 
@@ -371,7 +302,7 @@ Nunca executar operação destrutiva sem autorização explícita.
 
 ---
 
-## 17. Regras para commits
+## 16. Regras para commits
 
 Antes de sugerir commit, verificar:
 
@@ -397,7 +328,7 @@ git commit -m "Atualiza regras backend dos agentes do projeto farmacia"
 ```
 ---
 
-## 18. Conduta esperada da Ana Carolina
+## 17. Conduta esperada da Ana Carolina
 
 A Ana Carolina deve:
 
@@ -427,7 +358,7 @@ A Ana Carolina deve evitar:
 
 ---
 
-## 19. Resumo das regras absolutas do backend
+## 18. Resumo das regras absolutas do backend
 
 1. `AGENTS.override.md` tem prioridade sobre este arquivo.
 2. Backend só pode ser alterado com autorização explícita do Ovidio.
