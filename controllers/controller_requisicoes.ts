@@ -121,13 +121,15 @@ export default class Controller_Requisicoes {
             const req_med_id = Number(req.body.req_med_id || 0);
             const req_pac_id = Number(req.body.req_pac_id || 0);
             const req_qtde = Number(req.body.req_qtde || 0);
-            const req_lote = String(req.body.req_lote || '');
+            const req_lote = String(req.body.req_lote || null).trim().toLocaleUpperCase();
             const req_val_mes = Number(req.body.req_val_mes || 0);
             const req_val_ano = Number(req.body.req_val_ano || 0);
             const req_dep_id = Number(req.body.req_dep_id || 0);
             const req_local_id = Number(req.body.req_local_id || 0);
-            const req_tipo = String(req.body.req_tipo || '');
-            
+            const req_tipo = String(req.body.req_tipo || null).trim().toLocaleUpperCase();
+            const req_solicitado_por = String(req.body.req_solicitado_por || null).trim().toLocaleUpperCase();
+            const req_dt_solicitacao = new Date();
+
             if (!req_id) {
                 const error = new Error('Requisição não informada') as any;
                 error.statusCode = 400;
@@ -193,6 +195,12 @@ export default class Controller_Requisicoes {
                 error.statusCode = 400;
                 throw error;
             }
+
+            if (!req_solicitado_por) {
+                const error = new Error('Solicitante não informado') as any;
+                error.statusCode = 400;
+                throw error;
+            }
             
             const requisicoes = new Requisicoes(db.connection);
 
@@ -205,7 +213,9 @@ export default class Controller_Requisicoes {
             requisicoes.req_dep_id = req_dep_id;
             requisicoes.req_local_id = req_local_id;
             requisicoes.req_tipo = req_tipo;
-            
+            requisicoes.req_solicitado_por = req_solicitado_por;
+            requisicoes.reg_dt_solicitacao = req_dt_solicitacao;
+
             await requisicoes.Salvar();
 
             void await db.Commit();
@@ -244,7 +254,7 @@ export default class Controller_Requisicoes {
             void await db.Begin();
 
             const req_id = Number(req.params.req_id);
-            const user_aprova = req.params.user_aprova ? String(req.params.user_aprova) : null;
+            const req_aprovado_por = req.params.req_aprovado_por ? String(req.params.req_aprovado_por) : null;
             
             // Validações de entrada
             if (!req_id || req_id <= 0) {
@@ -253,7 +263,7 @@ export default class Controller_Requisicoes {
                 throw error;
             }
             
-            if (!user_aprova) {
+            if (!req_aprovado_por) {
                 const error = new Error('Usuario de aprovação não informado.');
                 error.statusCode = 400;
                 throw error; 
@@ -274,7 +284,8 @@ export default class Controller_Requisicoes {
             }
 
             requisicoes.req_aprova = 1;
-            requisicoes.req_aprovado_por = user_aprova.trim().toLocaleUpperCase();
+            requisicoes.req_aprovado_por = req_aprovado_por.trim().toLocaleUpperCase();
+            requisicoes.reg_dt_aprovacao = new Date();
 
             await requisicoes.Salvar();
 

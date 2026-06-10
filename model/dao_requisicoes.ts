@@ -3,7 +3,7 @@ import BaseModel,{iBaseModel} from "./BaseModel.js";
 
 export interface iRequisicoesFields {
     req_id : number,
-    req_pac_id : number,
+    req_pac_id : number | null,
     req_date : Date,
     req_med_id : number,
     req_qtde : number,
@@ -13,9 +13,11 @@ export interface iRequisicoesFields {
     req_dep_id: number,
     req_local_id: number,
     req_aprova: 0 | 1,
-    req_solicitado_por: string,
-    req_aprovado_por: string,
-    req_tipo: string
+    reg_dt_aprovacao: Date | null,
+    reg_dt_solicitacao: Date | null,
+    req_solicitado_por: string | null,
+    req_aprovado_por: string | null,
+    req_tipo: string | null
 }
 
 export default class Requisicoes extends BaseModel implements iRequisicoesFields, iBaseModel {
@@ -37,6 +39,8 @@ export default class Requisicoes extends BaseModel implements iRequisicoesFields
             req_val_ano: 0,
             req_dep_id: 0,
             req_local_id: 0,
+            reg_dt_aprovacao: null,
+            reg_dt_solicitacao: null,
             req_aprova: 0,
             req_solicitado_por: '',
             req_aprovado_por: '',
@@ -89,6 +93,12 @@ export default class Requisicoes extends BaseModel implements iRequisicoesFields
 
     set req_aprovado_por(aprovado_por: string) { this._fields.req_aprovado_por = aprovado_por;}
     get req_aprovado_por(): string {return this._fields.req_aprovado_por;}
+
+    set reg_dt_aprovacao(dt_aprovacao: Date | null) { this._fields.reg_dt_aprovacao = dt_aprovacao;}
+    get reg_dt_aprovacao(): Date | null {return this._fields.reg_dt_aprovacao;}
+
+    set reg_dt_solicitacao(dt_solicitacao: Date | null) { this._fields.reg_dt_solicitacao = dt_solicitacao;}
+    get reg_dt_solicitacao(): Date | null {return this._fields.reg_dt_solicitacao;}
 
     public async ListarPorPeriodo(dat_ini: Date, dat_fim: Date, aprova: 0 | 1 = 0) : Promise<iRequisicoesFields[]>{
 
