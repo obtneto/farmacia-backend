@@ -3,8 +3,8 @@ import BaseModel, { iBaseModel } from './BaseModel.js';
 
 export interface iDepositosFields {
     dep_id : number,
-    dep_descr : string,
-    dep_ativo : 0 | 1
+    dep_descr : string | null,
+    dep_ativo : 0 | 1 | null
 }
 
 export default class Depositos extends BaseModel implements iDepositosFields, iBaseModel{
@@ -17,8 +17,8 @@ export default class Depositos extends BaseModel implements iDepositosFields, iB
 
         const initFields : iDepositosFields = {
             dep_id: 0,
-            dep_descr: '',
-            dep_ativo: 0,
+            dep_descr: null,
+            dep_ativo: null,
         };
 
         super(connection,'tb_depositos',initFields,'dep_id');
@@ -30,11 +30,11 @@ export default class Depositos extends BaseModel implements iDepositosFields, iB
     set dep_id(id: number) { this._fields.dep_id = id;}
     get dep_id(): number {return this._fields.dep_id;}
 
-    set dep_descr(descr: string) { this._fields.dep_descr = descr;}
-    get dep_descr(): string {return this._fields.dep_descr;}
+    set dep_descr(descr: string | null) { this._fields.dep_descr = descr;}
+    get dep_descr(): string | null {return this._fields.dep_descr;}
 
-    set dep_ativo(ativo: 0 | 1) { this._fields.dep_ativo = ativo;}
-    get dep_ativo(): 0 | 1 {return this._fields.dep_ativo;}
+    set dep_ativo(ativo: 0 | 1 | null) { this._fields.dep_ativo = ativo;}
+    get dep_ativo(): 0 | 1 | null {return this._fields.dep_ativo;}
 
     public async Listar(pesq: string) : Promise<iDepositosFields[]>{
 

@@ -3,19 +3,10 @@ import BaseModel, { iBaseModel } from "./BaseModel.js";
 
 export interface iEntradaFields {
     ent_id: number;
-    ent_date: Date | string;
-    ent_doc: string;
-    ent_fornecido_por: string;
-}
-
-export interface iEntradaListItem {
-    id: number;
-    data: Date | string;
-    documento: string;
-    fornecedor: string;
-    medicamentos: string;
-    total_itens: number;
-    quantidade_total: number;
+    ent_dep_id: number | null,
+    ent_date: Date | string | null;
+    ent_doc: string | null;
+    ent_for_id: number | null;
 }
 
 export default class Entradas extends BaseModel implements iEntradaFields, iBaseModel {
@@ -28,9 +19,10 @@ export default class Entradas extends BaseModel implements iEntradaFields, iBase
 
         const initialFields: iEntradaFields = {
             ent_id: 0,
-            ent_date: new Date(),
-            ent_doc: '',
-            ent_fornecido_por: ''
+            ent_date: null,
+            ent_doc: null,
+            ent_for_id: null,
+            ent_dep_id: null
         };
 
         super(connection, 'tb_entradas', initialFields, 'ent_id');
@@ -41,67 +33,49 @@ export default class Entradas extends BaseModel implements iEntradaFields, iBase
     set ent_id(ent_id: number) { this._fields.ent_id = ent_id; }
     get ent_id(): number { return this._fields.ent_id; }
 
-    set ent_date(ent_date: Date | string) { this._fields.ent_date = ent_date; }
-    get ent_date(): Date | string { return this._fields.ent_date; }
+    set ent_dep_id(dep_id :number | null) {this._fields.ent_dep_id = dep_id}
+    get ent_dep_id() :number | null {return this._fields.ent_dep_id}
 
-    set ent_doc(ent_doc: string) { this._fields.ent_doc = ent_doc; }
-    get ent_doc(): string { return this._fields.ent_doc; }
+    set ent_date(ent_date: Date | string | null) { this._fields.ent_date = ent_date; }
+    get ent_date(): Date | string | null { return this._fields.ent_date; }
 
-    set ent_fornecido_por(ent_fornecido_por: string) { this._fields.ent_fornecido_por = ent_fornecido_por; }
-    get ent_fornecido_por(): string { return this._fields.ent_fornecido_por; }
+    set ent_doc(ent_doc: string | null) { this._fields.ent_doc = ent_doc; }
+    get ent_doc(): string | null { return this._fields.ent_doc; }
 
-    async ListarTodos(pesq: string, data_inicio: Date, data_fim: Date): Promise<iEntradaListItem[]> {
+    set ent_for_id(ent_for_id: number | null) { this._fields.ent_for_id = ent_for_id; }
+    get ent_for_id(): number | null { return this._fields.ent_for_id; }
+
+    async ListarPeriodo(pesq: string, data_inicio: Date, data_fim: Date,dep_id:number): Promise<RowDataPacket[]> {
 
         let query = `SELECT
                         e.ent_id AS id,
                         e.ent_date AS data,
                         e.ent_doc AS documento,
-                        e.ent_fornecido_por AS fornecedor,
-                        COALESCE(GROUP_CONCAT(DISTINCT m.med_descr ORDER BY m.med_descr SEPARATOR ' | '), '') AS medicamentos,
-                        COUNT(i.ite_ent_med_id) AS total_itens,
-                        COALESCE(SUM(i.ite_ent_qtde), 0) AS quantidade_total
+                        f.for_razao_social AS fornecedor
                      FROM tb_entradas e
-                     LEFT JOIN tb_itens_entradas i ON i.ite_ent_id = e.ent_id
-                     LEFT JOIN tb_medicamentos m ON m.med_id = i.ite_ent_med_id
-                     WHERE e.ent_date >= :data_inicio
-                       AND e.ent_date <= :data_fim`;
+                     LEFT JOIN tb_fornecedores f ON f.for_id = e.ent_for_id
+                     WHERE e.ent_dep_id = :dep_id AND (e.ent_date >= :data_inicio
+                       AND e.ent_date <= :data_fim)`;
 
         if (pesq !== '*') {
             query += ` AND (
                 e.ent_doc LIKE :pesq
-                OR e.ent_fornecido_por LIKE :pesq
-                OR m.med_descr LIKE :pesq
+                OR f.for_razao_social LIKE :pesq
+                OR e.ent_doc LIKE :pesq
             )`;
         }
 
         query += `
-            GROUP BY e.ent_id, e.ent_date, e.ent_doc, e.ent_fornecido_por
             ORDER BY e.ent_id DESC`;
 
         const [rows] = await this.ExecuteQuery(query, {
             pesq: `%${pesq}%`,
             data_inicio,
-            data_fim
+            data_fim,
+            dep_id
         });
 
-        return rows as iEntradaListItem[];
+        return rows as RowDataPacket[];
     }
 
-    async BuscarUltimaEntrada(): Promise<iEntradaFields | null> {
-        const query = `SELECT ent_id, ent_date, ent_doc, ent_fornecido_por
-                       FROM tb_entradas
-                       ORDER BY ent_id DESC
-                       LIMIT 1`;
-
-        const [rows] = await this.ExecuteQuery(query) as RowDataPacket[];
-
-        if (!rows || rows.length === 0) {
-            return null;
-        }
-
-        this.populateFromRow(rows[0]);
-        this._found = true;
-
-        return this._fields as iEntradaFields;
-    }
 }

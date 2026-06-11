@@ -3,13 +3,13 @@ import BaseModel,{iBaseModel} from "./BaseModel.js";
 
 export interface iDemandasEspecificasFields {
     dem_id : number,
-    dem_pac_id : number,
-    dem_medico_assis : string,
-    dem_medico_crm : string,
-    dem_med_id : number,    
-    dem_qtde_medicamento: number,
-    dem_qtde_doses: number,
-    dem_ativo : 0 | 1,
+    dem_pac_id : number | null,
+    dem_medico_assis : string | null,
+    dem_medico_crm : string | null,
+    dem_med_id : number | null,    
+    dem_qtde_medicamento: number | null,
+    dem_qtde_doses: number | null,
+    dem_ativo : 0 | 1 | null,
 }
 
 export default class DemandasEspecificas extends BaseModel implements iBaseModel,iDemandasEspecificasFields {
@@ -24,13 +24,13 @@ export default class DemandasEspecificas extends BaseModel implements iBaseModel
 
         const initialFields: iDemandasEspecificasFields = {
             dem_id: 0,
-            dem_pac_id: 0,
-            dem_medico_assis: '',
-            dem_medico_crm: '',
-            dem_med_id: 0,
-            dem_qtde_medicamento: 0,
-            dem_qtde_doses: 0,
-            dem_ativo: 0,
+            dem_pac_id: null,
+            dem_medico_assis: null,
+            dem_medico_crm: null,
+            dem_med_id: null,
+            dem_qtde_medicamento: null,
+            dem_qtde_doses: null,
+            dem_ativo: null,
         }
         
         super(connection, 'tb_demandas_especificas', initialFields, 'dem_id');
@@ -41,28 +41,28 @@ export default class DemandasEspecificas extends BaseModel implements iBaseModel
     get found() {return this._found;}
 
     set dem_id(id: number) {this._fields.dem_id = id;}
-    get dem_id() {return this._fields.dem_id;}
+    get dem_id():number {return this._fields.dem_id;}
     
-    set dem_pac_id(pac_id: number) {this._fields.dem_pac_id = pac_id;}
-    get dem_pac_id() {return this._fields.dem_pac_id;}
+    set dem_pac_id(pac_id: number | null) {this._fields.dem_pac_id = pac_id;}
+    get dem_pac_id(): number | null {return this._fields.dem_pac_id;}
     
-    set dem_medico_assis(medico_assis: string) {this._fields.dem_medico_assis = medico_assis;}
-    get dem_medico_assis() {return this._fields.dem_medico_assis;}
+    set dem_medico_assis(medico_assis: string | null) {this._fields.dem_medico_assis = medico_assis;}
+    get dem_medico_assis() :string | null {return this._fields.dem_medico_assis;}
     
-    set dem_medico_crm(medico_crm: string) {this._fields.dem_medico_crm = medico_crm;}
-    get dem_medico_crm() {return this._fields.dem_medico_crm;}
+    set dem_medico_crm(medico_crm: string | null) {this._fields.dem_medico_crm = medico_crm;}
+    get dem_medico_crm(): string | null {return this._fields.dem_medico_crm;}
     
-    set dem_med_id(med_id: number) {this._fields.dem_med_id = med_id;}
-    get dem_med_id() {return this._fields.dem_med_id;}
+    set dem_med_id(med_id: number | null) {this._fields.dem_med_id = med_id;}
+    get dem_med_id(): number | null {return this._fields.dem_med_id;}
     
-    set dem_qtde_medicamento(qtde_medicamento: number) {this._fields.dem_qtde_medicamento = qtde_medicamento;}
-    get dem_qtde_medicamento() {return this._fields.dem_qtde_medicamento;}
+    set dem_qtde_medicamento(qtde_medicamento: number | null) {this._fields.dem_qtde_medicamento = qtde_medicamento;}
+    get dem_qtde_medicamento(): number | null {return this._fields.dem_qtde_medicamento;}
 
-    set dem_qtde_doses(qtde_doses: number) {this._fields.dem_qtde_doses = qtde_doses;}
-    get dem_qtde_doses() {return this._fields.dem_qtde_doses;}
+    set dem_qtde_doses(qtde_doses: number | null) {this._fields.dem_qtde_doses = qtde_doses;}
+    get dem_qtde_doses(): number | null {return this._fields.dem_qtde_doses;}
     
-    set dem_ativo(ativo: 0 | 1) {this._fields.dem_ativo = ativo;}
-    get dem_ativo() {return this._fields.dem_ativo;}
+    set dem_ativo(ativo: 0 | 1 | null) {this._fields.dem_ativo = ativo;}
+    get dem_ativo(): 0 | 1 | null {return this._fields.dem_ativo;}
     
     async ListarDemandas() {
 

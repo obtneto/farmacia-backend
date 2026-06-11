@@ -3,8 +3,8 @@ import BaseModel,{iBaseModel} from './BaseModel.js';
 
 export interface iDiagnosticosFields {
     diag_id : number,
-    diag_descr : string,
-    diag_ativo : number
+    diag_descr : string | null,
+    diag_ativo : number | null
 }
 
 export default class Diagnosticos extends BaseModel implements iDiagnosticosFields,iBaseModel  {
@@ -17,8 +17,8 @@ export default class Diagnosticos extends BaseModel implements iDiagnosticosFiel
 
         const initFields: iDiagnosticosFields = {
             diag_id: 0,
-            diag_descr: '',
-            diag_ativo: 0
+            diag_descr: null,
+            diag_ativo: null
         };
 
         super(connection,'tb_diagnosticos', initFields,'diag_id');

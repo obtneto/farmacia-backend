@@ -5,9 +5,9 @@ export interface iBonameFields {
     bona_id: number,
     bona_codigo: string | null,
     bona_descr: string | null,
-    bona_qt_ui: number,
-    bona_ativo: 0 | 1,
-    bona_diag_id: number,
+    bona_qt_ui: number | null,
+    bona_ativo: 0 | 1 | null,
+    bona_diag_id: number | null,
 }
 
 export interface iBonamePrintFields extends iBonameFields {
@@ -26,9 +26,9 @@ export default class Boname extends BaseModel implements iBonameFields, iBaseMod
             bona_id: 0,
             bona_codigo: null,
             bona_descr: null,
-            bona_qt_ui: 0,
-            bona_ativo: 0,
-            bona_diag_id: 0,
+            bona_qt_ui: null,
+            bona_ativo: null,
+            bona_diag_id: null,
 
         }
 
@@ -44,14 +44,14 @@ export default class Boname extends BaseModel implements iBonameFields, iBaseMod
     set bona_descr(descr: string | null) { this._fields.bona_descr = descr;}
     get bona_descr(): string | null {return this._fields.bona_descr;}
 
-    set bona_qt_ui(qt_ui: number) { this._fields.bona_qt_ui = qt_ui;}
-    get bona_qt_ui(): number {return this._fields.bona_qt_ui;}
+    set bona_qt_ui(qt_ui: number | null) { this._fields.bona_qt_ui = qt_ui;}
+    get bona_qt_ui(): number | null {return this._fields.bona_qt_ui;}
     
-    set bona_diag_id(diag_id: number) { this._fields.bona_diag_id = diag_id;}
-    get bona_diag_id(): number {return this._fields.bona_diag_id;}
+    set bona_diag_id(diag_id: number | null) { this._fields.bona_diag_id = diag_id;}
+    get bona_diag_id(): number | null {return this._fields.bona_diag_id;}
 
-    set bona_ativo(ativo : 0 | 1) { this._fields.bona_ativo = ativo;}
-    get bona_ativo() : 0 | 1 {return this._fields.bona_ativo;} 
+    set bona_ativo(ativo : 0 | 1| null) { this._fields.bona_ativo = ativo;}
+    get bona_ativo() : 0 | 1 | null {return this._fields.bona_ativo;} 
 
     async ListarTodos(pesq : string): Promise<iBonameFields[]> {
         

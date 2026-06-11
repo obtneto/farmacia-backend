@@ -3,8 +3,8 @@ import BaseModel, { iBaseModel } from './BaseModel.js';
 
 export interface iFornecedoresFields {
     for_id: number,
-    for_razao_social: string,
-    for_nome_fantasia: string,
+    for_razao_social: string | null,
+    for_nome_fantasia: string | null,
     for_cnpj: string | null,
     for_logradouro: string | null,
     for_numero: string | null,
@@ -13,7 +13,7 @@ export interface iFornecedoresFields {
     for_uf: string | null,
     for_telefone: string | null,
     for_email: string | null,
-    for_ativo: 0 | 1,
+    for_ativo: 0 | 1 | null,
 }
 
 export default class Fornecedores extends BaseModel implements iBaseModel, iFornecedoresFields {
@@ -26,8 +26,8 @@ export default class Fornecedores extends BaseModel implements iBaseModel, iForn
 
         const initFields: iFornecedoresFields = {
             for_id: 0,
-            for_razao_social: '',
-            for_nome_fantasia: '',
+            for_razao_social: null,
+            for_nome_fantasia: null,
             for_cnpj: null,
             for_logradouro: null,
             for_numero: null,
@@ -36,7 +36,7 @@ export default class Fornecedores extends BaseModel implements iBaseModel, iForn
             for_uf: null,
             for_telefone: null,
             for_email: null,
-            for_ativo: 0,
+            for_ativo: null,
         };
 
         super(connection, 'tb_fornecedores', initFields, 'for_id');
@@ -48,11 +48,11 @@ export default class Fornecedores extends BaseModel implements iBaseModel, iForn
     set for_id(id: number) { this._fields.for_id = id; }
     get for_id(): number { return this._fields.for_id; }
 
-    set for_razao_social(razao_social: string) { this._fields.for_razao_social = razao_social; }
-    get for_razao_social(): string { return this._fields.for_razao_social; }
+    set for_razao_social(razao_social: string | null) { this._fields.for_razao_social = razao_social; }
+    get for_razao_social(): string | null { return this._fields.for_razao_social; }
 
-    set for_nome_fantasia(nome_fantasia: string) { this._fields.for_nome_fantasia = nome_fantasia; }
-    get for_nome_fantasia(): string { return this._fields.for_nome_fantasia; }
+    set for_nome_fantasia(nome_fantasia: string | null) { this._fields.for_nome_fantasia = nome_fantasia; }
+    get for_nome_fantasia(): string | null { return this._fields.for_nome_fantasia; }
 
     set for_cnpj(cnpj: string | null) { this._fields.for_cnpj = cnpj; }
     get for_cnpj(): string | null { return this._fields.for_cnpj; }
@@ -78,8 +78,8 @@ export default class Fornecedores extends BaseModel implements iBaseModel, iForn
     set for_email(email: string | null) { this._fields.for_email = email; }
     get for_email(): string | null { return this._fields.for_email; }
 
-    set for_ativo(ativo: 0 | 1) { this._fields.for_ativo = ativo; }
-    get for_ativo(): 0 | 1 { return this._fields.for_ativo; }
+    set for_ativo(ativo: 0 | 1 | null) { this._fields.for_ativo = ativo; }
+    get for_ativo(): 0 | 1 | null { return this._fields.for_ativo; }
 
     public async Listar(pesq: string = ''): Promise<iFornecedoresFields[]> {
 

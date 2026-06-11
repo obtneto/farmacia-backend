@@ -1,94 +1,71 @@
 import { Connection, RowDataPacket } from "mysql2/promise";
+import baseModel,{iBaseModel} from "./BaseModel.js";
+import { number } from "zod";
+import { string } from "zod/mini";
 
 export interface iItemEntradaFields {
     ite_id: number;
-    ite_ent_id: number;
-    ite_ent_med_id: number;
-    ite_ent_lote: string;
-    ite_ent_lote_validade: Date | null;
-    ite_ent_qtde: number;
+    ite_ent_id: number | null;
+    ite_ent_med_id: number | null;
+    ite_ent_lote: string | null;
+    ite_ent_lote_validade: Date | string | null;
+    ite_ent_qtde: number | null;
 }
 
-export interface iItemEntradaDetalhe extends iItemEntradaFields {
-    med_descr?: string;
-    med_descr_coml?: string;
-    med_und?: string;
-}
 
-export default class ItensEntradas {
-
-    private connection: Connection;
+export default class ItensEntradas extends baseModel implements iBaseModel,iItemEntradaFields {
 
     constructor(connection: Connection) {
+        
         if (!connection) {
             throw new Error("Conexão com o banco de dados não estabelecida.");
         }
 
-        this.connection = connection;
+        const initialFields: iItemEntradaFields = {
+            ite_id: 0,
+            ite_ent_id: null,
+            ite_ent_med_id: null,
+            ite_ent_lote: null,
+            ite_ent_lote_validade: null,
+            ite_ent_qtde: null      
+        };
+        
+        super(connection, 'tb_itens_entradas', initialFields, 'ent_id');
+
     }
 
-    async ListarPorEntrada(entradaId: number): Promise<iItemEntradaDetalhe[]> {
-        const [rows] = await this.connection.query(
-            `SELECT
-                i.ite_id,
-                i.ite_ent_id,
-                i.ite_ent_med_id,
-                i.ite_ent_lote,
-                i.ite_ent_lote_validade,
-                i.ite_ent_qtde,
-                m.med_descr,
-                m.med_descr_coml,
-                m.med_und
-             FROM tb_itens_entradas i
-             LEFT JOIN tb_medicamentos m ON m.med_id = i.ite_ent_med_id
-             WHERE i.ite_ent_id = :entradaId
-             ORDER BY i.ite_id, m.med_descr, i.ite_ent_med_id`,
-            { entradaId }
-        ) as RowDataPacket[];
+    get found() :boolean {return this._fields.found}
 
-        return rows as iItemEntradaDetalhe[];
+    set ite_id(ite_id :number) {this._fields.ite_id = ite_id}
+    get ite_id() :number {return this._fields.ite_id}
+
+    set ite_ent_id(ite_ent_id: number | null) {this._fields.ite_ent_id = ite_ent_id }
+    get ite_ent_id() :number | null {return this._fields.ite_ent_id}
+
+    set ite_ent_med_id(ite_ent_med_id: number | null) {this._fields.ite_ent_med_id = ite_ent_med_id }
+    get ite_ent_med_id() :number | null {return this._fields.ite_ent_med_id}
+
+    set ite_ent_lote(ite_ent_lote: string | null) {this._fields.ite_ent_lote = ite_ent_lote }
+    get ite_ent_lote() :string | null {return this._fields.ite_ent_lote}
+
+    set ite_ent_lote_validade(ite_ent_lote_validade: string | null) {this._fields.ite_ent_lote_validade = ite_ent_lote_validade }
+    get ite_ent_lote_validade() :string | null {return this._fields.ite_ite_ent_lote_validade}
+
+    set ite_ent_qtde(ite_ent_lote_validade: number | null) {this._fields.ite_ent_qtde = ite_ent_lote_validade }
+    get ite_ent_qtde() :number | null {return this._fields.ite_ent_qtde}
+
+    public async ListarItens(ent_id :number) : Promise<RowDataPacket[]> {
+
+        const query: string = `SELECT i.ite_id as id, i.ite_ent_med_id as id_medicacao, m.med_descr as medicacao,
+        m.med_descr_coml as [descricao comercial],i.ite_ent_lote as lote,i.ite_lote_validade as validade,ite_ent_qtde as quantidade
+        FROM tb_itens_entradas i
+        LEFT JOIN tb_medicamentos m ON m.med_id = i.ite_ent_med_id
+        WHERE ite_ent_id = ent_id`
+
+        const [rows] = await this.ExecuteQuery(query,{ent_id}) as RowDataPacket[]
+
+        return rows as RowDataPacket[]
+
     }
 
-    async Inserir(item: iItemEntradaFields): Promise<void> {
-        const ite_id = item.ite_id > 0 ? item.ite_id : await this.BuscarProximoItemId(item.ite_ent_id);
-
-        await this.connection.query(
-            `INSERT INTO tb_itens_entradas SET
-                ite_id = :ite_id,
-                ite_ent_id = :ite_ent_id,
-                ite_ent_med_id = :ite_ent_med_id,
-                ite_ent_lote = :ite_ent_lote,
-                ite_ent_lote_validade = :ite_ent_lote_validade,
-                ite_ent_qtde = :ite_ent_qtde`,
-            {
-                ite_id,
-                ite_ent_id: item.ite_ent_id,
-                ite_ent_med_id: item.ite_ent_med_id,
-                ite_ent_lote: item.ite_ent_lote,
-                ite_ent_lote_validade: item.ite_ent_lote_validade,
-                ite_ent_qtde: item.ite_ent_qtde
-            } as any
-        );
-
-        item.ite_id = ite_id;
-    }
-
-    async ExcluirPorEntrada(entradaId: number): Promise<void> {
-        await this.connection.query(
-            `DELETE FROM tb_itens_entradas WHERE ite_ent_id = :entradaId`,
-            { entradaId }
-        );
-    }
-
-    private async BuscarProximoItemId(entradaId: number): Promise<number> {
-        const [rows] = await this.connection.query(
-            `SELECT IFNULL(MAX(ite_id), 0) + 1 AS next_id
-             FROM tb_itens_entradas
-             WHERE ite_ent_id = :entradaId
-             FOR UPDATE`,
-            { entradaId }
-        ) as RowDataPacket[];
-
-        return Number(rows[0]?.next_id || 1);
-    }
 }

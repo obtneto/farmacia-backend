@@ -8,12 +8,12 @@ enum eStatus {
 
 export interface iInventariosFields {
     inv_id: number,
-    inv_date: Date,
-    inv_dep_id: number,
-    inv_med_tipo_codigo: string,
-    inv_status: eStatus,
-    inv_mes_ref: number,
-    inv_ano_ref: number,
+    inv_date: Date | string | null,
+    inv_dep_id: number | null,
+    inv_med_tipo_codigo: string | null,
+    inv_status: eStatus | null,
+    inv_mes_ref: number | null,
+    inv_ano_ref: number | null,
 }
 
 export default class Inventarios extends BaseModel implements iBaseModel, iInventariosFields {
@@ -26,12 +26,12 @@ export default class Inventarios extends BaseModel implements iBaseModel, iInven
 
         const initFields: iInventariosFields = {
             inv_id: 0,
-            inv_date: new Date(),
-            inv_dep_id: 0,
-            inv_med_tipo_codigo: '',
-            inv_status: 0,
-            inv_mes_ref: 0,
-            inv_ano_ref: 0,
+            inv_date: null,
+            inv_dep_id: null,
+            inv_med_tipo_codigo: null,
+            inv_status: null,
+            inv_mes_ref: null,
+            inv_ano_ref: null,
         };
 
         super(connection, 'tb_inventarios', initFields, 'inv_id');
@@ -43,46 +43,35 @@ export default class Inventarios extends BaseModel implements iBaseModel, iInven
     set inv_id(id: number) { this._fields.inv_id = id;}
     get inv_id(): number {return this._fields.inv_id;}
 
-    set inv_date(date: Date) { this._fields.inv_date = date;}
-    get inv_date(): Date {return this._fields.inv_date;}
+    set inv_date(date: Date | string | null) { this._fields.inv_date = date;}
+    get inv_date(): Date | string | null {return this._fields.inv_date;}
 
-    set inv_dep_id(dep_id: number) { this._fields.inv_dep_id = dep_id;}
-    get inv_dep_id(): number {return this._fields.inv_dep_id;}
+    set inv_dep_id(dep_id: number | null) { this._fields.inv_dep_id = dep_id;}
+    get inv_dep_id(): number | null {return this._fields.inv_dep_id;}
 
-    set inv_med_tipo_codigo(med_tipo_codigo: string) { this._fields.inv_med_tipo_codigo = med_tipo_codigo;}
-    get inv_med_tipo_codigo(): string {return this._fields.inv_med_tipo_codigo;}
+    set inv_med_tipo_codigo(med_tipo_codigo: string | null) { this._fields.inv_med_tipo_codigo = med_tipo_codigo;}
+    get inv_med_tipo_codigo(): string | null {return this._fields.inv_med_tipo_codigo;}
 
-    set inv_status(status: eStatus) { this._fields.inv_status = status;}
-    get inv_status(): eStatus {return this._fields.inv_status;}
+    set inv_status(status: eStatus | null) { this._fields.inv_status = status;}
+    get inv_status(): eStatus | null {return this._fields.inv_status;}
 
-    set inv_mes_ref(mes_ref: number) { this._fields.inv_mes_ref = mes_ref;}
-    get inv_mes_ref(): number {return this._fields.inv_mes_ref;}
+    set inv_mes_ref(mes_ref: number | null) { this._fields.inv_mes_ref = mes_ref;}
+    get inv_mes_ref(): number | null {return this._fields.inv_mes_ref;}
 
-    set inv_ano_ref(ano_ref: number) { this._fields.inv_ano_ref = ano_ref;}
-    get inv_ano_ref(): number {return this._fields.inv_ano_ref;}
+    set inv_ano_ref(ano_ref: number | null) { this._fields.inv_ano_ref = ano_ref;}
+    get inv_ano_ref(): number | null {return this._fields.inv_ano_ref;}
 
-    public async ListarPorPeriodo(mes_ref: number, ano_ref: number, dep_id?: number): Promise<iInventariosFields[]> {
+    public async ListarPorPeriodo(mes_ref: number, ano_ref: number, dep_id: number,status: eStatus): Promise<RowDataPacket[]> {
 
-        let query: string = "SELECT * FROM tb_inventarios WHERE inv_mes_ref = :mes_ref AND inv_ano_ref = :ano_ref";
+        const query: string = `SELECT * FROM 
+            tb_inventarios i
+            LEFT JOIN tb_depositos d ON d.dep_id = i.inv_dep_id
+            LEFT JOIN tb_tipos_medicamentos t ON t.tipo_id = i.inv_med_tipo_codigo
+            WHERE i.inv_dep_id = :dep_id AND i.inv_mes_ref = :mes_ref AND i.inv_ano_ref = :ano_ref`;
 
-        const params: any = { mes_ref, ano_ref };
+        const params: any = { mes_ref, ano_ref, dep_id, status };
 
-        if (dep_id) {
-            query += " AND inv_dep_id = :dep_id";
-            params.dep_id = dep_id;
-        }
-
-        const [rows] = await this.ExecuteQuery(query, params) as [iInventariosFields[]];
-
-        return rows;
-
-    }
-
-    public async ListarPorStatus(status: eStatus): Promise<iInventariosFields[]> {
-
-        const query: string = "SELECT * FROM tb_inventarios WHERE inv_status = :status";
-
-        const [rows] = await this.ExecuteQuery(query, { status }) as [iInventariosFields[]];
+        const [rows] = await this.ExecuteQuery(query, params) as [RowDataPacket[]];
 
         return rows;
 
