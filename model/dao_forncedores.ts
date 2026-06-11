@@ -1,37 +1,22 @@
 import { Connection, RowDataPacket } from 'mysql2/promise';
 import BaseModel, { iBaseModel } from './BaseModel.js';
 
-export interface iFornecedoresDbFields {
-    for_id: number,
-    for_razao_social: string,
-    for_nome_fatansia: string,
-    for_cnpj: string,
-    for_logradouro: string,
-    for_numero: string,
-    for_bairro: string,
-    for_cidade: string,
-    for_uf: string,
-    for_telefone: string,
-    for_email: string,
-    for_ativo: 0 | 1,
-}
-
 export interface iFornecedoresFields {
     for_id: number,
     for_razao_social: string,
     for_nome_fantasia: string,
-    for_cnpj: string,
-    for_logradouro: string,
-    for_numero: string,
-    for_bairro: string,
-    for_cidade: string,
-    for_uf: string,
-    for_telefone: string,
-    for_email: string,
+    for_cnpj: string | null,
+    for_logradouro: string | null,
+    for_numero: string | null,
+    for_bairro: string | null,
+    for_cidade: string | null,
+    for_uf: string | null,
+    for_telefone: string | null,
+    for_email: string | null,
     for_ativo: 0 | 1,
 }
 
-export default class Fornecedores extends BaseModel implements iBaseModel, iFornecedoresDbFields {
+export default class Fornecedores extends BaseModel implements iBaseModel, iFornecedoresFields {
 
     constructor(connection: Connection) {
 
@@ -39,18 +24,18 @@ export default class Fornecedores extends BaseModel implements iBaseModel, iForn
             throw new Error("Conexão com o banco de dados não estabelecida.");
         }
 
-        const initFields: iFornecedoresDbFields = {
+        const initFields: iFornecedoresFields = {
             for_id: 0,
             for_razao_social: '',
-            for_nome_fatansia: '',
-            for_cnpj: '',
-            for_logradouro: '',
-            for_numero: '',
-            for_bairro: '',
-            for_cidade: '',
-            for_uf: '',
-            for_telefone: '',
-            for_email: '',
+            for_nome_fantasia: '',
+            for_cnpj: null,
+            for_logradouro: null,
+            for_numero: null,
+            for_bairro: null,
+            for_cidade: null,
+            for_uf: null,
+            for_telefone: null,
+            for_email: null,
             for_ativo: 0,
         };
 
@@ -66,52 +51,35 @@ export default class Fornecedores extends BaseModel implements iBaseModel, iForn
     set for_razao_social(razao_social: string) { this._fields.for_razao_social = razao_social; }
     get for_razao_social(): string { return this._fields.for_razao_social; }
 
-    set for_nome_fatansia(nome_fatansia: string) { this._fields.for_nome_fatansia = nome_fatansia; }
-    get for_nome_fatansia(): string { return this._fields.for_nome_fatansia; }
+    set for_nome_fantasia(nome_fantasia: string) { this._fields.for_nome_fantasia = nome_fantasia; }
+    get for_nome_fantasia(): string { return this._fields.for_nome_fantasia; }
 
-    set for_cnpj(cnpj: string) { this._fields.for_cnpj = cnpj; }
-    get for_cnpj(): string { return this._fields.for_cnpj; }
+    set for_cnpj(cnpj: string | null) { this._fields.for_cnpj = cnpj; }
+    get for_cnpj(): string | null { return this._fields.for_cnpj; }
 
-    set for_logradouro(logradouro: string) { this._fields.for_logradouro = logradouro; }
-    get for_logradouro(): string { return this._fields.for_logradouro; }
+    set for_logradouro(logradouro: string | null) { this._fields.for_logradouro = logradouro; }
+    get for_logradouro(): string | null { return this._fields.for_logradouro; }
 
-    set for_numero(numero: string) { this._fields.for_numero = numero; }
-    get for_numero(): string { return this._fields.for_numero; }
+    set for_numero(numero: string | null) { this._fields.for_numero = numero; }
+    get for_numero(): string | null { return this._fields.for_numero; }
 
-    set for_bairro(bairro: string) { this._fields.for_bairro = bairro; }
-    get for_bairro(): string { return this._fields.for_bairro; }
+    set for_bairro(bairro: string | null) { this._fields.for_bairro = bairro; }
+    get for_bairro(): string | null { return this._fields.for_bairro; }
 
-    set for_cidade(cidade: string) { this._fields.for_cidade = cidade; }
-    get for_cidade(): string { return this._fields.for_cidade; }
+    set for_cidade(cidade: string | null) { this._fields.for_cidade = cidade; }
+    get for_cidade(): string | null { return this._fields.for_cidade; }
 
-    set for_uf(uf: string) { this._fields.for_uf = uf; }
-    get for_uf(): string { return this._fields.for_uf; }
+    set for_uf(uf: string | null) { this._fields.for_uf = uf; }
+    get for_uf(): string | null { return this._fields.for_uf; }
 
-    set for_telefone(telefone: string) { this._fields.for_telefone = telefone; }
-    get for_telefone(): string { return this._fields.for_telefone; }
+    set for_telefone(telefone: string | null) { this._fields.for_telefone = telefone; }
+    get for_telefone(): string |  null { return this._fields.for_telefone; }
 
-    set for_email(email: string) { this._fields.for_email = email; }
-    get for_email(): string { return this._fields.for_email; }
+    set for_email(email: string | null) { this._fields.for_email = email; }
+    get for_email(): string | null { return this._fields.for_email; }
 
     set for_ativo(ativo: 0 | 1) { this._fields.for_ativo = ativo; }
     get for_ativo(): 0 | 1 { return this._fields.for_ativo; }
-
-    public toApiFields(): iFornecedoresFields {
-        return {
-            for_id: this.for_id,
-            for_razao_social: this.for_razao_social,
-            for_nome_fantasia: this.for_nome_fatansia,
-            for_cnpj: this.for_cnpj,
-            for_logradouro: this.for_logradouro,
-            for_numero: this.for_numero,
-            for_bairro: this.for_bairro,
-            for_cidade: this.for_cidade,
-            for_uf: this.for_uf,
-            for_telefone: this.for_telefone,
-            for_email: this.for_email,
-            for_ativo: this.for_ativo,
-        };
-    }
 
     public async Listar(pesq: string = ''): Promise<iFornecedoresFields[]> {
 
@@ -119,7 +87,7 @@ export default class Fornecedores extends BaseModel implements iBaseModel, iForn
             SELECT
                 for_id,
                 for_razao_social,
-                for_nome_fatansia AS for_nome_fantasia,
+                for_nome_fantasia,
                 for_cnpj,
                 for_logradouro,
                 for_numero,
@@ -135,7 +103,7 @@ export default class Fornecedores extends BaseModel implements iBaseModel, iForn
         if (pesq !== '*') {
             query += `
                 WHERE for_razao_social LIKE :pesq
-                   OR for_nome_fatansia LIKE :pesq
+                   OR for_nome_fantasia LIKE :pesq
                    OR for_cnpj LIKE :pesq
             `;
         }
@@ -152,13 +120,13 @@ export default class Fornecedores extends BaseModel implements iBaseModel, iForn
             SELECT
                 for_id,
                 for_razao_social,
-                for_nome_fatansia AS for_nome_fantasia
+                for_nome_fantasia
             FROM tb_fornecedores
             WHERE for_ativo = 1
         `;
 
         if (pesq !== '*') {
-            query += ' AND (for_razao_social LIKE :pesq OR for_nome_fatansia LIKE :pesq OR for_cnpj LIKE :pesq)';
+            query += ' AND (for_razao_social LIKE :pesq OR for_nome_fantasia LIKE :pesq OR for_cnpj LIKE :pesq)';
         }
 
         const [rows] = await this.ExecuteQuery(query, { pesq: `%${pesq}%` }) as [RowDataPacket[]];

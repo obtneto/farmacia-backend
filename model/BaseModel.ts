@@ -40,7 +40,7 @@ export default class BaseModel implements iBaseModel{
         
         const query: string= `SELECT * FROM ${this._tb_name} WHERE ${this._primaryKey} = :id`;
 
-        const [rows] = await this._conn.query(query, { id }) as RowDataPacket[];
+        let [rows] = await this._conn.query(query, { id }) as RowDataPacket[];
 
         if (rows && rows.length > 0) {
             this.populateFromRow(rows[0]);

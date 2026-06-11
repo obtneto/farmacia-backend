@@ -53,12 +53,14 @@ app.use(helmet());
 app.use(morgan('dev'));
 
 app.use(express.json({
-    limit: '5mb',
+    limit: '150kb',
     type: 'application/json'
 }));
 
 app.use(cors({
+
     origin: (origin, callback) => {
+
         if (!origin || allowedOrigins.has(origin) || isLoopbackOrigin(origin)) {
             callback(null, true);
             return;
@@ -68,6 +70,7 @@ app.use(cors({
     },
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization']
+    
 }));
 
 app.use(authMiddleware);

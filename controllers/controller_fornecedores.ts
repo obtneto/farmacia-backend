@@ -67,7 +67,7 @@ export default class Controller_Fornecedores {
             }
 
             const fornecedores = new Fornecedores(db.connection);
-            void await fornecedores.BuscarPorId(fornecedor_id);
+            const result = await fornecedores.BuscarPorId(fornecedor_id);
 
             if (!fornecedores.found) {
                 const error = new Error('Fornecedor não encontrado');
@@ -75,7 +75,7 @@ export default class Controller_Fornecedores {
                 throw error;
             }
 
-            resdata.data = fornecedores.toApiFields();
+            resdata.data = result
 
         } catch (error: any) {
             applyControllerError(resdata, error, 'Controller Fornecedores');
@@ -173,16 +173,16 @@ export default class Controller_Fornecedores {
             void await db.Begin();
 
             const for_id = Number(req.body.for_id || 0);
-            const for_razao_social = String(req.body.for_razao_social || '').trim().toLocaleUpperCase('pt-BR');
-            const for_nome_fantasia = String(req.body.for_nome_fantasia || '').trim().toLocaleUpperCase('pt-BR');
-            const for_cnpj = String(req.body.for_cnpj || '').replace(/\D/g, '').slice(0, 14);
-            const for_logradouro = String(req.body.for_logradouro || '').trim().toLocaleUpperCase('pt-BR');
-            const for_numero = String(req.body.for_numero || '').trim().toLocaleUpperCase('pt-BR').slice(0, 10);
-            const for_bairro = String(req.body.for_bairro || '').trim().toLocaleUpperCase('pt-BR');
-            const for_cidade = String(req.body.for_cidade || '').trim().toLocaleUpperCase('pt-BR');
+            const for_razao_social = String(req.body.for_razao_social || null).trim().toLocaleUpperCase('pt-BR');
+            const for_nome_fantasia = String(req.body.for_nome_fantasia || null).trim().toLocaleUpperCase('pt-BR');
+            const for_cnpj =  String(req.body.for_cnpj || null).replace(/\D/g, '').slice(0, 14);
+            const for_logradouro = String(req.body.for_logradouro || null).trim().toLocaleUpperCase('pt-BR');
+            const for_numero = String(req.body.for_numero || null).trim().toLocaleUpperCase('pt-BR').slice(0, 10);
+            const for_bairro = String(req.body.for_bairro || null).trim().toLocaleUpperCase('pt-BR');
+            const for_cidade = String(req.body.for_cidade || null).trim().toLocaleUpperCase('pt-BR');
             const for_uf = String(req.body.for_uf || '').trim().toLocaleUpperCase('pt-BR').slice(0, 2);
-            const for_telefone = String(req.body.for_telefone || '').replace(/\D/g, '').slice(0, 11);
-            const for_email = String(req.body.for_email || '').trim().toLocaleLowerCase('pt-BR').slice(0, 120);
+            const for_telefone = String(req.body.for_telefone || null).replace(/\D/g, '').slice(0, 11);
+            const for_email = String(req.body.for_email || null).trim().toLocaleLowerCase('pt-BR').slice(0, 120);
             const for_ativo: 0 | 1 = Number(req.body.for_ativo || 0) === 1 ? 1 : 0;
 
             if (!for_razao_social) {
@@ -213,21 +213,23 @@ export default class Controller_Fornecedores {
                 throw error;
             }
 
+            console.log(for_ativo)
+
             const fornecedores = new Fornecedores(db.connection);
 
             void await fornecedores.BuscarPorId(for_id);
 
             fornecedores.for_id = for_id;
             fornecedores.for_razao_social = for_razao_social;
-            fornecedores.for_nome_fatansia = for_nome_fantasia;
-            fornecedores.for_cnpj = for_cnpj;
-            fornecedores.for_logradouro = for_logradouro;
-            fornecedores.for_numero = for_numero;
-            fornecedores.for_bairro = for_bairro;
-            fornecedores.for_cidade = for_cidade;
-            fornecedores.for_uf = for_uf;
-            fornecedores.for_telefone = for_telefone;
-            fornecedores.for_email = for_email;
+            fornecedores.for_nome_fantasia = for_nome_fantasia;
+            fornecedores.for_cnpj = for_cnpj === '' ? null : for_cnpj;
+            fornecedores.for_logradouro = for_logradouro === '' ? null : for_logradouro;
+            fornecedores.for_numero = for_numero === '' ? null : for_numero;
+            fornecedores.for_bairro = for_bairro === '' ? null : for_bairro;
+            fornecedores.for_cidade = for_cidade === '' ? null : for_cidade;
+            fornecedores.for_uf = for_uf === '' ? null : for_uf;
+            fornecedores.for_telefone = for_telefone === '' ? null : for_telefone;
+            fornecedores.for_email = for_email === '' ? null : for_email;
             fornecedores.for_ativo = for_ativo;
 
             void await fornecedores.Salvar();
