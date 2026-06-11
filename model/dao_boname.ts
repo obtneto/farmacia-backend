@@ -3,8 +3,8 @@ import BaseModel, { iBaseModel } from './BaseModel.js';
 
 export interface iBonameFields {
     bona_id: number,
-    bona_codigo: string,
-    bona_descr: string,
+    bona_codigo: string | null,
+    bona_descr: string | null,
     bona_qt_ui: number,
     bona_ativo: 0 | 1,
     bona_diag_id: number,
@@ -24,8 +24,8 @@ export default class Boname extends BaseModel implements iBonameFields, iBaseMod
 
         const initialFields: iBonameFields = {
             bona_id: 0,
-            bona_codigo: '',
-            bona_descr: '',
+            bona_codigo: null,
+            bona_descr: null,
             bona_qt_ui: 0,
             bona_ativo: 0,
             bona_diag_id: 0,
@@ -38,11 +38,11 @@ export default class Boname extends BaseModel implements iBonameFields, iBaseMod
     set bona_id(id: number) { this._fields.bona_id = id;}
     get bona_id(): number {return this._fields.bona_id;}
 
-    set bona_codigo(codigo: string) { this._fields.bona_codigo = codigo;}
-    get bona_codigo(): string {return this._fields.bona_codigo;}
+    set bona_codigo(codigo: string | null) { this._fields.bona_codigo = codigo;}
+    get bona_codigo(): string | null {return this._fields.bona_codigo;}
 
-    set bona_descr(descr: string) { this._fields.bona_descr = descr;}
-    get bona_descr(): string {return this._fields.bona_descr;}
+    set bona_descr(descr: string | null) { this._fields.bona_descr = descr;}
+    get bona_descr(): string | null {return this._fields.bona_descr;}
 
     set bona_qt_ui(qt_ui: number) { this._fields.bona_qt_ui = qt_ui;}
     get bona_qt_ui(): number {return this._fields.bona_qt_ui;}
