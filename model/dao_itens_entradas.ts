@@ -1,7 +1,5 @@
 import { Connection, RowDataPacket } from "mysql2/promise";
 import baseModel,{iBaseModel} from "./BaseModel.js";
-import { number } from "zod";
-import { string } from "zod/mini";
 
 export interface iItemEntradaFields {
     ite_id: number;
@@ -30,11 +28,11 @@ export default class ItensEntradas extends baseModel implements iBaseModel,iItem
             ite_ent_qtde: null      
         };
         
-        super(connection, 'tb_itens_entradas', initialFields, 'ent_id');
+        super(connection, 'tb_itens_entradas', initialFields, 'ite_id');
 
     }
 
-    get found() :boolean {return this._fields.found}
+    get found() :boolean {return this._found}
 
     set ite_id(ite_id :number) {this._fields.ite_id = ite_id}
     get ite_id() :number {return this._fields.ite_id}
@@ -48,8 +46,8 @@ export default class ItensEntradas extends baseModel implements iBaseModel,iItem
     set ite_ent_lote(ite_ent_lote: string | null) {this._fields.ite_ent_lote = ite_ent_lote }
     get ite_ent_lote() :string | null {return this._fields.ite_ent_lote}
 
-    set ite_ent_lote_validade(ite_ent_lote_validade: string | null) {this._fields.ite_ent_lote_validade = ite_ent_lote_validade }
-    get ite_ent_lote_validade() :string | null {return this._fields.ite_ite_ent_lote_validade}
+    set ite_ent_lote_validade(ite_ent_lote_validade: Date | string | null) {this._fields.ite_ent_lote_validade = ite_ent_lote_validade }
+    get ite_ent_lote_validade() :Date | string | null {return this._fields.ite_ent_lote_validade}
 
     set ite_ent_qtde(ite_ent_lote_validade: number | null) {this._fields.ite_ent_qtde = ite_ent_lote_validade }
     get ite_ent_qtde() :number | null {return this._fields.ite_ent_qtde}

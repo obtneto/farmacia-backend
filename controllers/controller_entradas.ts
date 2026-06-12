@@ -139,6 +139,7 @@ export default class Controller_Entradas {
             const ent_id = Number(req.body.ent_id || 0);
             const ent_date = new Date(req.body.ent_date);
             let ent_doc = String(req.body.ent_doc || '');
+            const ent_doc_informado = ent_doc.trim().length > 0;
             const ent_for_id = Number(req.body.ent_for_id || 0);
             const ent_dep_id = Number(req.body.ent_dep_id || 0);
             const itens = Array.isArray(req.body.itens) ? req.body.itens : null
@@ -161,7 +162,7 @@ export default class Controller_Entradas {
                 throw error;
             }
 
-            if (itens || itens.length === 0) {
+            if (!itens || itens.length === 0) {
                 const error = new Error('Adicione pelo menos um item à entrada.');
                 error.statusCode = 400;
                 throw error;
@@ -190,26 +191,38 @@ export default class Controller_Entradas {
             await entradas.Salvar();
 
             for (const item of itens) {
+                const itemMedId = Number(item.ent_med_id || 0);
+                const itemLote = String(item.ent_lote || '');
+                const itemLoteValidade = item.ent_lote_validade;
+                const itemQtde = Number(item.ent_qtde || 0);
 
-                await medicamentos.BuscarPorId(item.ite_ent_med_id);
+                await medicamentos.BuscarPorId(itemMedId);
 
                 if (!medicamentos.found) {
-                    const error = new Error(`Medicamento ${item.ite_ent_med_id} não encontrado.`);
+                    const error = new Error(`Medicamento ${itemMedId} não encontrado.`);
                     error.statusCode = 400;
                     throw error;
                 }
 
-                item.ite_ent_id = entradas.ent_id;
-                
-                await estoque.BuscarPorItemEstoque(ent_dep_id, item.ite_ent_med_id, item.ite_ent_lote);
+                await itensEntradas.BuscarPorId(0)
 
-                estoque.est_med_id = item.ite_ent_med_id;
+                itensEntradas.ite_ent_id = entradas.ent_id;
+                itensEntradas.ite_ent_med_id = itemMedId;
+                itensEntradas.ite_ent_lote = itemLote;
+                itensEntradas.ite_ent_lote_validade = itemLoteValidade;
+                itensEntradas.ite_ent_qtde = itemQtde;
+
+                await itensEntradas.Salvar();
+                
+                await estoque.BuscarPorItemEstoque(ent_dep_id, itemMedId, itemLote);
+
+                estoque.est_med_id = itemMedId;
                 estoque.est_dep_id = ent_dep_id;
-                estoque.est_lote = item.ite_ent_lote;
-                estoque.est_validade = item.ite_ent_lote_validade || new Date();
+                estoque.est_lote = itemLote;
+                estoque.est_validade = itemLoteValidade || new Date();
                 estoque.est_saldo = estoque.found
-                    ? Number(estoque.est_saldo) + Number(item.ite_ent_qtde)
-                    : Number(item.ite_ent_qtde);
+                    ? Number(estoque.est_saldo) + itemQtde
+                    : itemQtde;
 
                 await estoque.Salvar();
             }
@@ -220,7 +233,7 @@ export default class Controller_Entradas {
             resdata.data = {
                 ent_id: entradas.ent_id,
                 ent_doc: entradas.ent_doc,
-                ent_doc_auto_generated: ent_doc,
+                ent_doc_auto_generated: !ent_doc_informado,
                 total_itens: itens.length
             };
         } catch (error: any) {
