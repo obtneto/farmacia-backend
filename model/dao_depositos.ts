@@ -50,5 +50,15 @@ export default class Depositos extends BaseModel implements iDepositosFields, iB
 
     }
 
+    public async ListarAtivos() : Promise<iDepositosFields[]>{
+
+        let query: string = "SELECT dep_id, dep_descr FROM tb_depositos WHERE dep_ativo = 1";
+
+        const [rows] = await this.ExecuteQuery(query) as RowDataPacket[];
+
+        return rows as iDepositosFields[];
+
+    }
+
 }
 

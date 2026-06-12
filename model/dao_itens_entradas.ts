@@ -49,16 +49,22 @@ export default class ItensEntradas extends baseModel implements iBaseModel,iItem
     set ite_ent_lote_validade(ite_ent_lote_validade: Date | string | null) {this._fields.ite_ent_lote_validade = ite_ent_lote_validade }
     get ite_ent_lote_validade() :Date | string | null {return this._fields.ite_ent_lote_validade}
 
-    set ite_ent_qtde(ite_ent_lote_validade: number | null) {this._fields.ite_ent_qtde = ite_ent_lote_validade }
+    set ite_ent_qtde(ite_ent_qtde: number | null) {this._fields.ite_ent_qtde = ite_ent_qtde }
     get ite_ent_qtde() :number | null {return this._fields.ite_ent_qtde}
 
     public async ListarItens(ent_id :number) : Promise<RowDataPacket[]> {
 
-        const query: string = `SELECT i.ite_id as id, i.ite_ent_med_id as id_medicacao, m.med_descr as medicacao,
-        m.med_descr_coml as [descricao comercial],i.ite_ent_lote as lote,i.ite_lote_validade as validade,ite_ent_qtde as quantidade
-        FROM tb_itens_entradas i
-        LEFT JOIN tb_medicamentos m ON m.med_id = i.ite_ent_med_id
-        WHERE ite_ent_id = ent_id`
+        const query: string = `SELECT 
+                                    i.ite_id as id, 
+                                    i.ite_ent_med_id as id_medicacao, 
+                                    m.med_descr as medicacao,
+                                    m.med_descr_coml as 'descricao comercial',
+                                    i.ite_ent_lote as lote,
+                                    i.ite_ent_lote_validade as validade,
+                                    i.ite_ent_qtde as quantidade
+                                FROM tb_itens_entradas i
+                                LEFT JOIN tb_medicamentos m ON m.med_id = i.ite_ent_med_id
+                                WHERE i.ite_ent_id = :ent_id`;
 
         const [rows] = await this.ExecuteQuery(query,{ent_id}) as RowDataPacket[]
 

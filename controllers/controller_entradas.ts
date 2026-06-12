@@ -102,14 +102,14 @@ export default class Controller_Entradas {
                 throw error;
             }
 
-            //const itens = await itensEntradas.(ent_id);
-            //const quantidade_total = itens.reduce((total, item) => total + Number(item.ite_ent_qtde || 0), 0);
+            const itens = await itensEntradas.ListarItens(ent_id);
+            const quantidade_total = itens.reduce((total, item) => total + Number(item.quantidade || 0), 0);
 
             resdata.data = {
                 ...entrada,
-                //itens,
-                //total_itens: itens.length,
-                //quantidade_total
+                itens,
+                total_itens: itens.length,
+                quantidade_total
             };
 
         } catch (error: any) {
@@ -232,6 +232,103 @@ export default class Controller_Entradas {
         }
 
         await db.Disconnect();
+        return res.status(resdata.status).json(resdata);
+    }
+
+    static async ListarItens(req: Request, res: Response) {
+
+        const db : iDatabase = new Database('fsph_farmacia');
+
+        const resdata : iresdata = {
+            err: 0,
+            msg: '',
+            status: 200,
+            data: []
+        }
+
+        try {
+
+            await db.Connect();
+
+            const ent_id = Number(req.params.ent_id || 0);
+
+            if (ent_id <= 0) {
+                const error = new Error('ID da entrada inválido');
+                error.statusCode = 400;
+                throw error;
+            }
+
+            const itensEntradas = new ItensEntradas(db.connection);
+
+            const result = await itensEntradas.ListarItens(ent_id);
+
+            resdata.data = result;
+            
+        } catch (error) {
+            applyControllerError(resdata, error, 'Controller Entradas');
+        }
+
+        await db.Disconnect();
+        return res.status(resdata.status).json(resdata);
+
+    }
+
+    static async ListarEntradasNaoAprovados(req: Request, res: Response) {
+
+        const db : iDatabase = new Database('fsph_farmacia');
+
+        const resdata : iresdata = {
+            err: 0,
+            msg: '',
+            status: 200,
+            data: []
+        }
+
+        try {
+
+            await db.Connect();
+
+            const pesq = String(req.params.pesq || '*');
+            const dep_id = Number(req.params.dep_id || 0)
+            const data_inicio = new Date(String(req.params.data_inicio));
+            const data_fim = new Date(String(req.params.data_fim));
+
+            if (dep_id === 0) {
+                 const error = new Error('Deposito inválido') as any;
+                error.statusCode = 400;
+                throw error;
+            }
+
+            if (Number.isNaN(data_inicio.getTime())) {
+                const error = new Error('Data de início inválida') as any;
+                error.statusCode = 400;
+                throw error;
+            }
+
+            if (Number.isNaN(data_fim.getTime())) {
+                const error = new Error('Data de fim inválida') as any;
+                error.statusCode = 400;
+                throw error
+            }
+
+            if (data_inicio > data_fim) {
+                const error = new Error('Data de início deve ser menor que a data de fim')
+                error.statusCode =  400;
+                throw error;
+            }
+
+            const entradas = new Entradas(db.connection);
+
+            const result = await entradas.ListarEntradasNaoAprovados(pesq, data_inicio, data_fim, dep_id);
+
+            resdata.data = result;
+
+        } catch (error) {
+            applyControllerError(resdata, error, 'Controller Entradas');
+        }
+
+        await db.Disconnect();
+
         return res.status(resdata.status).json(resdata);
     }
 }

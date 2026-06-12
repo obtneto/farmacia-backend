@@ -34,7 +34,6 @@ const port : number = Number(process.env.PORT || 3000);
 const allowedOrigins = new Set([
   'http://localhost',
   'http://localhost:5173',
-  'http://172.23.42.84.110:5173',
   'http://192.168.0.8:5173',
 ]);
 
@@ -42,6 +41,25 @@ function isLoopbackOrigin(origin: string): boolean {
     try {
         const { hostname } = new URL(origin);
         return hostname === 'localhost' || hostname === '127.0.0.1';
+    } catch {
+        return false;
+    }
+}
+
+function isPrivateNetworkOrigin(origin: string): boolean {
+    try {
+        const { hostname } = new URL(origin);
+        const octets = hostname.split('.').map(Number);
+
+        if (octets.length !== 4 || octets.some((octet) => Number.isNaN(octet) || octet < 0 || octet > 255)) {
+            return false;
+        }
+
+        return (
+            octets[0] === 10 ||
+            (octets[0] === 172 && octets[1] >= 16 && octets[1] <= 31) ||
+            (octets[0] === 192 && octets[1] === 168)
+        );
     } catch {
         return false;
     }
@@ -61,7 +79,7 @@ app.use(cors({
 
     origin: (origin, callback) => {
 
-        if (!origin || allowedOrigins.has(origin) || isLoopbackOrigin(origin)) {
+        if (!origin || allowedOrigins.has(origin) || isLoopbackOrigin(origin) || isPrivateNetworkOrigin(origin)) {
             callback(null, true);
             return;
         }
@@ -90,7 +108,7 @@ app.use('/parametros/fornecedores', routes_fornecedores);
 app.use('/requisicoes', routes_requisicoes);
 app.use('/entradas', routes_entradas);
 app.use('/demandas-especificas', routes_demandas_especificas);
-app.use(globalErrorHandler);
+//app.use(globalErrorHandler);
 
 app.listen(port, () => {
     console.log(`Server is running TS on port ${port}`);
