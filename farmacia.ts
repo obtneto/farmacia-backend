@@ -10,6 +10,7 @@ import routes_diagnosticos from './routes/routes_diagnosticos.js';
 import routes_medicamentos from './routes/routes_medicamentos.js';
 import routes_requisicoes from './routes/routes_requisicoes.js';
 import routes_fornecedores from './routes/routes_fornecedores.js';
+import routes_auth from './routes/routes_auth.js';
 import {globalErrorHandler} from './utils/ErrorMiddleware.js';
 import routes_entradas from './routes/routes_entradas.js';
 import routes_demandas_especificas from './routes/routes_demandas_especificas.js';
@@ -87,10 +88,12 @@ app.use(cors({
         callback(new Error(`Origin nao permitida: ${origin}`));
     },
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
     
 }));
 
+app.use('/auth', routes_auth);
 app.use(authMiddleware);
 
 /*****************************************************

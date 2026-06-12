@@ -332,7 +332,7 @@ export default class Controller_Entradas {
         return res.status(resdata.status).json(resdata);
     }
 
-    static async AprovarEntrada(req: Request, res: Response) {
+    static async AprovarEntradas(req: Request, res: Response) {
 
         const db : iDatabase = new Database('fsph_farmacia');
 
@@ -379,10 +379,10 @@ export default class Controller_Entradas {
             for (const item of itens) {
 
                 const est_dep_id = entradas.ent_dep_id || 0;
-                const est_med_id = item.ent_med_id || 0;
-                const est_lote = item.ent_lote || '';
-                const est_validade = item.ent_lote_validade || null;
-                const est_qtde = item.ent_ent_qtde || 0;
+                const est_med_id = item.id_medicacao || 0;
+                const est_lote = item.lote || '';
+                const est_validade = item.validade || null;
+                const est_qtde = item.quantidade || 0;
 
                 await estoque.BuscarPorItemEstoque(est_dep_id, est_med_id, est_lote);
 

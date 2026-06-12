@@ -11,7 +11,13 @@ declare module 'jsonwebtoken' {
         algorithms?: Algorithm[];
     }
 
+    export interface SignOptions {
+        algorithm?: Algorithm;
+        expiresIn?: string | number;
+    }
+
     interface JsonWebTokenApi {
+        sign(payload: string | object | Buffer, secretOrPrivateKey: string, options?: SignOptions): string;
         verify(token: string, secretOrPublicKey: string, options?: VerifyOptions): JwtPayload | string;
         decode(token: string): JwtPayload | string | null;
     }
