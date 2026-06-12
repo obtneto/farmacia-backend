@@ -7,6 +7,7 @@ export interface iEntradaFields {
     ent_date: Date | string | null;
     ent_doc: string | null;
     ent_for_id: number | null;
+    ent_status: number | null
 }
 
 export default class Entradas extends BaseModel implements iEntradaFields, iBaseModel {
@@ -22,7 +23,8 @@ export default class Entradas extends BaseModel implements iEntradaFields, iBase
             ent_date: null,
             ent_doc: null,
             ent_for_id: null,
-            ent_dep_id: null
+            ent_dep_id: null,
+            ent_status: null
         };
 
         super(connection, 'tb_entradas', initialFields, 'ent_id');
@@ -45,13 +47,17 @@ export default class Entradas extends BaseModel implements iEntradaFields, iBase
     set ent_for_id(ent_for_id: number | null) { this._fields.ent_for_id = ent_for_id; }
     get ent_for_id(): number | null { return this._fields.ent_for_id; }
 
+    set ent_status(ent_status: number | null) {this._fields.ent_status}
+    get ent_status(): number | null {return this._fields.ent_status}
+
     async ListarPeriodo(pesq: string, data_inicio: Date, data_fim: Date,dep_id:number): Promise<RowDataPacket[]> {
 
         let query = `SELECT
                         e.ent_id AS id,
                         e.ent_date AS data,
                         e.ent_doc AS documento,
-                        f.for_razao_social AS fornecedor
+                        f.for_razao_social AS fornecedor,
+                        e.status
                      FROM tb_entradas e
                      LEFT JOIN tb_fornecedores f ON f.for_id = e.ent_for_id
                      WHERE e.ent_dep_id = :dep_id AND (e.ent_date >= :data_inicio

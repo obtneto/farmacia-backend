@@ -170,7 +170,7 @@ export default class Controller_Entradas {
 
             if (!ent_doc) {
                 const anoAtual = new Date().getFullYear();
-                const mesAtual = new Date().getMonth().toString().padStart(2,'0');
+                const mesAtual = (new Date().getMonth() + 1).toString().padStart(2,'0');
                 const numeroAleatorio = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
                 
                 ent_doc = `${anoAtual}${mesAtual}${numeroAleatorio}`;
@@ -178,7 +178,6 @@ export default class Controller_Entradas {
 
             const entradas = new Entradas(db.connection);
             const itensEntradas = new ItensEntradas(db.connection);
-            const estoque = new Estoque(db.connection);
             const medicamentos = new Medicamentos(db.connection);
 
             void await entradas.BuscarPorId(ent_id);
@@ -187,10 +186,12 @@ export default class Controller_Entradas {
             entradas.ent_doc = ent_doc;
             entradas.ent_dep_id = ent_dep_id;
             entradas.ent_for_id = ent_for_id;
+            entradas.ent_status = 0;
 
             await entradas.Salvar();
 
             for (const item of itens) {
+
                 const itemMedId = Number(item.ent_med_id || 0);
                 const itemLote = String(item.ent_lote || '');
                 const itemLoteValidade = item.ent_lote_validade;
@@ -200,7 +201,7 @@ export default class Controller_Entradas {
 
                 if (!medicamentos.found) {
                     const error = new Error(`Medicamento ${itemMedId} não encontrado.`);
-                    error.statusCode = 400;
+                    error.statusCode = 404;
                     throw error;
                 }
 
@@ -214,17 +215,6 @@ export default class Controller_Entradas {
 
                 await itensEntradas.Salvar();
                 
-                await estoque.BuscarPorItemEstoque(ent_dep_id, itemMedId, itemLote);
-
-                estoque.est_med_id = itemMedId;
-                estoque.est_dep_id = ent_dep_id;
-                estoque.est_lote = itemLote;
-                estoque.est_validade = itemLoteValidade || new Date();
-                estoque.est_saldo = estoque.found
-                    ? Number(estoque.est_saldo) + itemQtde
-                    : itemQtde;
-
-                await estoque.Salvar();
             }
 
             await db.Commit();
