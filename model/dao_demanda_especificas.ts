@@ -99,6 +99,16 @@ export default class DemandasEspecificas extends BaseModel implements iBaseModel
             this._found = true;
         } else {
             this._found = false;
+            this.populateFromInitial({
+                dem_id: 0,
+                dem_pac_id: pac_id,
+                dem_medico_assis: null,
+                dem_medico_crm: null,
+                dem_med_id: null,
+                dem_qtde_medicamento: null,
+                dem_qtde_doses: null,
+                dem_ativo: null,
+            });
         }
 
         return this._fields;

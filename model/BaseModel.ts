@@ -13,6 +13,7 @@ export default class BaseModel implements iBaseModel{
     private _tb_name: string;
     protected _fields: any;
     private _primaryKey: string;
+    private _initialFields: any;
     protected _found: boolean;
 
     constructor(connection: Connection, tb_name: string, field_structure: any, primaryKey: string) {
@@ -25,6 +26,7 @@ export default class BaseModel implements iBaseModel{
         this._found = false;
         this._tb_name = tb_name;
         this._fields = { ...field_structure };
+        this._initialFields = { ...field_structure };
         this._conn = connection;
         this._primaryKey = primaryKey;
     }
@@ -46,6 +48,7 @@ export default class BaseModel implements iBaseModel{
             this.populateFromRow(rows[0]);
             this._found = true;
         } else {
+            this.populateFromInitial(this._initialFields);
             this._found = false;
         }
 
@@ -95,6 +98,16 @@ export default class BaseModel implements iBaseModel{
         Object.keys(this._fields).forEach(key => {
             if (row[key] !== undefined) {
                 this._fields[key] = row[key];
+            }
+        });
+
+    }
+
+    protected populateFromInitial(initial: any) {
+
+        Object.keys(this._initialFields).forEach(key => {
+            if (initial[key] !== undefined) {
+                this._fields[key] = initial[key];
             }
         });
 

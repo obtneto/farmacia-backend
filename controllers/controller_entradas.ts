@@ -179,7 +179,7 @@ export default class Controller_Entradas {
             const entradas = new Entradas(db.connection);
             const itensEntradas = new ItensEntradas(db.connection);
             const medicamentos = new Medicamentos(db.connection);
-
+        
             void await entradas.BuscarPorId(ent_id);
 
             entradas.ent_date = ent_date;
@@ -214,7 +214,7 @@ export default class Controller_Entradas {
                 itensEntradas.ite_ent_qtde = itemQtde;
 
                 await itensEntradas.Salvar();
-                
+
             }
 
             await db.Commit();
@@ -329,6 +329,98 @@ export default class Controller_Entradas {
 
         await db.Disconnect();
 
+        return res.status(resdata.status).json(resdata);
+    }
+
+    static async AprovarEntrada(req: Request, res: Response) {
+
+        const db : iDatabase = new Database('fsph_farmacia');
+
+        const resdata : iresdata = {
+            err: 0,
+            msg: '',
+            status: 200,
+            data: []
+        }
+
+        try {
+
+            await db.Connect();
+            await db.Begin();
+
+            const ent_id = Number(req.params.ent_id || 0);
+
+            if (ent_id <= 0) {
+                const error = new Error('ID da entrada inválido');
+                error.statusCode = 400;
+                throw error;
+            }
+
+            const entradas = new Entradas(db.connection);
+            const estoque = new Estoque(db.connection);
+            const itensEntradas = new ItensEntradas(db.connection);
+
+            await entradas.BuscarPorId(ent_id);
+
+            if (!entradas.found) {
+                const error = new Error('Entrada não encontrada.');
+                error.statusCode = 404;
+                throw error;
+            }
+
+            if (entradas.ent_status === 1) {
+                const error = new Error('Entrada já aprovada.');
+                error.statusCode = 400;
+                throw error;
+            }
+
+            const itens = await itensEntradas.ListarItens(ent_id);
+
+            for (const item of itens) {
+
+                const est_dep_id = entradas.ent_dep_id || 0;
+                const est_med_id = item.ent_med_id || 0;
+                const est_lote = item.ent_lote || '';
+                const est_validade = item.ent_lote_validade || null;
+                const est_qtde = item.ent_ent_qtde || 0;
+
+                await estoque.BuscarPorItemEstoque(est_dep_id, est_med_id, est_lote);
+
+                if (estoque.found) {
+                    
+                    estoque.est_saldo_disponivel += est_qtde;
+                    
+                    if (est_validade) {
+                        estoque.est_validade = est_validade;
+                    }
+                   
+                } else {
+
+                    estoque.est_dep_id = est_dep_id;
+                    estoque.est_med_id = est_med_id;
+                    estoque.est_lote = est_lote;
+                    estoque.est_validade = est_validade;
+                    estoque.est_saldo_disponivel = est_qtde;
+                    estoque.est_saldo_bloqueado = 0;
+
+                }
+
+                await estoque.Salvar();
+            }
+
+            entradas.ent_status = 1;
+            await entradas.Salvar();
+
+            await db.Commit();
+
+            resdata.msg = 'Entrada aprovada com sucesso';
+
+        } catch (error) {
+            await db.Rollback();
+            applyControllerError(resdata, error, 'Controller Entradas');
+        }
+
+        await db.Disconnect();
         return res.status(resdata.status).json(resdata);
     }
 }

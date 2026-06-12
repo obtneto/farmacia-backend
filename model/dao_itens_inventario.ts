@@ -82,6 +82,16 @@ export default class ItensInventario extends BaseModel implements iBaseModel, iI
             this._found = true;
         } else {
             this._found = false;
+            this.populateFromInitial({
+                iti_id: 0,
+                iti_inv_id: null,
+                iti_med_id: null,
+                iti_lote: null,
+                iti_validade: null,
+                iti_qtde_estoque: null,
+                iti_qtde_invent: null,
+                iti_qtde_dif: null,
+            });
         }
 
         return this._fields;

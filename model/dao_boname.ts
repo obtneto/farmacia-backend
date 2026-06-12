@@ -109,6 +109,14 @@ export default class Boname extends BaseModel implements iBonameFields, iBaseMod
             this.populateFromRow(rows[0]);
         } else {
             this._found = false;
+            this.populateFromInitial({
+                bona_id: 0,
+                bona_codigo: null,
+                bona_descr: null,
+                bona_qt_ui: null,
+                bona_ativo: null,
+                bona_diag_id: null,
+            });
         }
     }
    

@@ -6,7 +6,8 @@ export interface iEstoqueFields {
     est_dep_id: number | null,
     est_med_id: number | null,
     est_lote: string | null,
-    est_saldo: number | null,
+    est_saldo_disponivel: number | null,
+    est_saldo_bloqueado: number | null,
     est_validade: Date | string | null
 }
 
@@ -25,7 +26,8 @@ export default class Estoque extends BaseModel implements iEstoqueFields, iBaseM
             est_dep_id: null,
             est_med_id: null,
             est_lote: null,
-            est_saldo: null,
+            est_saldo_disponivel: null,
+            est_saldo_bloqueado: null,
             est_validade: null,
         };
         
@@ -48,19 +50,32 @@ export default class Estoque extends BaseModel implements iEstoqueFields, iBaseM
     set est_lote(lote: string | null) { this._fields.est_lote = lote;}
     get est_lote(): string | null {return this._fields.est_lote;}
 
-    set est_saldo(saldo: number | null) { this._fields.est_saldo = saldo;}
-    get est_saldo(): number | null {return this._fields.est_saldo;}
+    set est_saldo_disponivel(saldo_disponivel: number | null) { this._fields.est_saldo_disponivel = saldo_disponivel;}
+    get est_saldo_disponivel(): number | null {return this._fields.est_saldo_disponivel;}
+
+    set est_saldo_bloqueado(saldo_bloqueado: number | null) { this._fields.est_saldo_bloqueado = saldo_bloqueado;}
+    get est_saldo_bloqueado(): number | null {return this._fields.est_saldo_bloqueado;}
 
     set est_validade(validade: Date | string | null) { this._fields.est_validade = validade;}
     get est_validade(): Date | string | null{return this._fields.est_validade;}
     
     async ListarAtivos(pesq: string = '',dep_id: number,med_tipo_codigo: string) : Promise<iEstoqueFields[]>{
 
-        let query: string = `SELECT m.med_id as id, m.med_descr as descricao, m.med_desc_coml as descricao_comercial,
-                             m.und as unidade, e.est_lote as lote, e.est_saldo as saldo, e.est_validade as validade 
+        let query: string = `SELECT 
+                             m.med_id as id, 
+                             m.med_descr as descricao, 
+                             m.med_desc_coml as descricao_comercial,
+                             m.und as unidade, 
+                             e.est_lote as lote,
+                             e.est_saldo_bloqueado as saldo_bloqueado, 
+                             e.est_saldo_disponivel as saldo_disponivel, 
+                             e.est_validade as validade 
                              FROM tb_estoque e
                              LEFT JOIN tb_medicamentos m ON e.est_med_id = m.med_id
-                             WHERE e.est_dep_id = :dep_id AND m.med_tipo_codigo = :med_tipo_codigo AND e.est_saldo > 0`;
+                                WHERE 
+                                e.est_dep_id = :dep_id AND 
+                                m.med_tipo_codigo = :med_tipo_codigo AND
+                                e.est_saldo_disponivel > 0`;
 
         if (pesq !== '*') {
             query += " AND m.med_descr LIKE :pesq";
@@ -83,6 +98,15 @@ export default class Estoque extends BaseModel implements iEstoqueFields, iBaseM
             this._found = true;
         } else {
             this._found = false;
+            this.populateFromInitial({
+                est_id: 0,
+                est_dep_id: null,
+                est_med_id: null,
+                est_lote: null,
+                est_saldo_disponivel: null,
+                est_saldo_bloqueado: null,
+                est_validade: null
+            });
         }
 
         return this._fields;
