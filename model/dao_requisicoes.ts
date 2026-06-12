@@ -4,15 +4,15 @@ import BaseModel,{iBaseModel} from "./BaseModel.js";
 export interface iRequisicoesFields {
     req_id : number,
     req_pac_id : number | null,
-    req_date : Date,
-    req_med_id : number,
-    req_qtde : number,
-    req_lote: string ,
-    req_val_mes: number,
-    req_val_ano: number,
-    req_dep_id: number,
-    req_local_id: number,
-    req_aprova: 0 | 1,
+    req_date : Date |  null,
+    req_med_id : number | null,
+    req_qtde : number | null,
+    req_lote: string | null,
+    req_val_mes: number | null,
+    req_val_ano: number | null,
+    req_dep_id: number | null,
+    req_local_id: number | null,
+    req_aprova: 0 | 1 | null,
     reg_dt_aprovacao: Date | null,
     reg_dt_solicitacao: Date | null,
     req_solicitado_por: string | null,
@@ -30,21 +30,21 @@ export default class Requisicoes extends BaseModel implements iRequisicoesFields
         
         const initFields : iRequisicoesFields = {
             req_id: 0,
-            req_pac_id: 0,
-            req_date: new Date(),
-            req_med_id: 0,
-            req_qtde: 0,
-            req_lote: '',
-            req_val_mes: 0,
-            req_val_ano: 0,
-            req_dep_id: 0,
-            req_local_id: 0,
+            req_pac_id: null,
+            req_date: null,
+            req_med_id: null,
+            req_qtde: null,
+            req_lote: null,
+            req_val_mes: null,
+            req_val_ano: null,
+            req_dep_id: null,
+            req_local_id: null,
             reg_dt_aprovacao: null,
             reg_dt_solicitacao: null,
-            req_aprova: 0,
-            req_solicitado_por: '',
-            req_aprovado_por: '',
-            req_tipo: ''
+            req_aprova: null,
+            req_solicitado_por: null,
+            req_aprovado_por: null,
+            req_tipo: null
         };
         
         super(connection,'tb_requisicoes',initFields,'req_id');
@@ -55,44 +55,44 @@ export default class Requisicoes extends BaseModel implements iRequisicoesFields
     set req_id(id: number) { this._fields.req_id = id;}
     get req_id(): number {return this._fields.req_id;}
 
-    set req_pac_id(pac_id: number) { this._fields.req_pac_id = pac_id;}
-    get req_pac_id(): number {return this._fields.req_pac_id;}
+    set req_pac_id(pac_id: number | null) { this._fields.req_pac_id = pac_id;}
+    get req_pac_id(): number | null {return this._fields.req_pac_id;}
 
-    set req_date(date: Date) { this._fields.req_date = date;}
-    get req_date(): Date {return this._fields.req_date;}
+    set req_date(date: Date | null) { this._fields.req_date = date;}
+    get req_date(): Date | null {return this._fields.req_date;}
 
-    set req_med_id(med_id: number) { this._fields.req_med_id = med_id;}
-    get req_med_id(): number {return this._fields.req_med_id;}
+    set req_med_id(med_id: number | null) { this._fields.req_med_id = med_id;}
+    get req_med_id(): number | null {return this._fields.req_med_id;}
 
-    set req_qtde(qtde: number) { this._fields.req_qtde = qtde;}
-    get req_qtde(): number {return this._fields.req_qtde;}
+    set req_qtde(qtde: number | null) { this._fields.req_qtde = qtde;}
+    get req_qtde(): number | null {return this._fields.req_qtde;}
 
-    set req_lote(lote: string) { this._fields.req_lote = lote;}
-    get req_lote(): string {return this._fields.req_lote;}
+    set req_lote(lote: string | null) { this._fields.req_lote = lote;}
+    get req_lote(): string | null {return this._fields.req_lote;}
 
-    set req_val_mes(val_mes: number) { this._fields.req_val_mes = val_mes;}
-    get req_val_mes(): number {return this._fields.req_val_mes;}
+    set req_val_mes(val_mes: number | null) { this._fields.req_val_mes = val_mes;}
+    get req_val_mes(): number | null {return this._fields.req_val_mes;}
 
-    set req_val_ano(val_ano: number) { this._fields.req_val_ano = val_ano;}
-    get req_val_ano(): number {return this._fields.req_val_ano;}
+    set req_val_ano(val_ano: number | null) { this._fields.req_val_ano = val_ano;}
+    get req_val_ano(): number | null {return this._fields.req_val_ano;}
 
-    set req_dep_id(dep_id: number) { this._fields.req_dep_id = dep_id;}
-    get req_dep_id(): number {return this._fields.req_dep_id;}
+    set req_dep_id(dep_id: number | null) { this._fields.req_dep_id = dep_id;}
+    get req_dep_id(): number | null {return this._fields.req_dep_id;}
 
-    set req_local_id(local_id: number) { this._fields.req_local_id = local_id;}
-    get req_local_id(): number {return this._fields.req_local_id;}
+    set req_local_id(local_id: number | null) { this._fields.req_local_id = local_id;}
+    get req_local_id(): number | null {return this._fields.req_local_id;}
 
-    set req_aprova(aprova: 0 | 1) { this._fields.req_aprova = aprova;}
-    get req_aprova(): 0 | 1 {return this._fields.req_aprova;}
+    set req_aprova(aprova: 0 | 1 | null) { this._fields.req_aprova = aprova;}
+    get req_aprova(): 0 | 1 | null {return this._fields.req_aprova;}
 
-    set req_tipo(tipo: string) { this._fields.req_tipo = tipo;}
-    get req_tipo(): string {return this._fields.req_tipo;}
+    set req_tipo(tipo: string | null) { this._fields.req_tipo = tipo;}
+    get req_tipo(): string | null {return this._fields.req_tipo;}
 
-    set req_solicitado_por(solicitado_por: string) { this._fields.req_solicitado_por = solicitado_por;}
-    get req_solicitado_por(): string {return this._fields.req_solicitado_por;}
+    set req_solicitado_por(solicitado_por: string | null) { this._fields.req_solicitado_por = solicitado_por;}
+    get req_solicitado_por(): string | null {return this._fields.req_solicitado_por;}
 
-    set req_aprovado_por(aprovado_por: string) { this._fields.req_aprovado_por = aprovado_por;}
-    get req_aprovado_por(): string {return this._fields.req_aprovado_por;}
+    set req_aprovado_por(aprovado_por: string | null) { this._fields.req_aprovado_por = aprovado_por;}
+    get req_aprovado_por(): string | null {return this._fields.req_aprovado_por;}
 
     set reg_dt_aprovacao(dt_aprovacao: Date | null) { this._fields.reg_dt_aprovacao = dt_aprovacao;}
     get reg_dt_aprovacao(): Date | null {return this._fields.reg_dt_aprovacao;}

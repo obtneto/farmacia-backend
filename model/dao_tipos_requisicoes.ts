@@ -3,8 +3,8 @@ import BaseModel, { iBaseModel } from './BaseModel.js';
 
 export interface iTiposRequisicoesFields {
     tip_id : number,
-    tip_codigo : string,
-    tip_descr : string,
+    tip_codigo : string | null,
+    tip_descr : string | null,
 }
 
 export default class TiposRequisicoes extends BaseModel implements iBaseModel,iTiposRequisicoesFields {
@@ -17,8 +17,8 @@ export default class TiposRequisicoes extends BaseModel implements iBaseModel,iT
 
         const initFields: iTiposRequisicoesFields = {
             tip_id: 0,
-            tip_codigo: '',
-            tip_descr: '',
+            tip_codigo: null,
+            tip_descr: null,
         };
 
         super(connection, 'tb_tipos_requisicoes', initFields, 'tip_id');
@@ -30,11 +30,11 @@ export default class TiposRequisicoes extends BaseModel implements iBaseModel,iT
     set tip_id(id : number) { this._fields.tip_id = id;}
     get tip_id() :number {return this._fields.tip_id;}
 
-    set tip_codigo(codigo : string) { this._fields.tip_codigo = codigo;}
-    get tip_codigo() :string {return this._fields.tip_codigo;}
+    set tip_codigo(codigo : string | null) { this._fields.tip_codigo = codigo;}
+    get tip_codigo() :string | null {return this._fields.tip_codigo;}
 
-    set tip_descr(descr : string) { this._fields.tip_descr = descr;}
-    get tip_descr() :string {return this._fields.tip_descr;}
+    set tip_descr(descr : string | null) { this._fields.tip_descr = descr;}
+    get tip_descr() :string | null {return this._fields.tip_descr;}
 
     public async Listar() : Promise<iTiposRequisicoesFields[]>{
 

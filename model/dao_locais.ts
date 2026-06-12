@@ -8,8 +8,8 @@ enum eAtivo {
 
 export interface iLocaisFields {
     local_id : number,
-    local_descr : string,
-    local_ativo : eAtivo,
+    local_descr : string | null,
+    local_ativo : eAtivo | null,
 }
 
 export default class Locais extends BaseModel implements iBaseModel,iLocaisFields {
@@ -22,8 +22,8 @@ export default class Locais extends BaseModel implements iBaseModel,iLocaisField
 
         const initFields: iLocaisFields = {
             local_id: 0,
-            local_descr: '',
-            local_ativo: 0,
+            local_descr: null,
+            local_ativo: null,
         };
 
         super(connection, 'tb_locais', initFields, 'local_id');
@@ -35,11 +35,11 @@ export default class Locais extends BaseModel implements iBaseModel,iLocaisField
     set local_id(id : number) { this._fields.local_id = id;}
     get local_id() :number {return this._fields.local_id;}
 
-    set local_descr(descr : string) { this._fields.local_descr = descr;}
-    get local_descr() :string {return this._fields.local_descr;}
+    set local_descr(descr : string | null) { this._fields.local_descr = descr;}
+    get local_descr() :string | null {return this._fields.local_descr;}
 
-    set local_ativo(ativo : eAtivo) { this._fields.local_ativo = ativo;}
-    get local_ativo() : eAtivo {return this._fields.local_ativo;}
+    set local_ativo(ativo : eAtivo | null) { this._fields.local_ativo = ativo;}
+    get local_ativo() : eAtivo | null {return this._fields.local_ativo;}
 
     public async Listar(pesq : string = '') : Promise<iLocaisFields[]>{
 

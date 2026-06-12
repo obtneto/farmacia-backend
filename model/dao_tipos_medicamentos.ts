@@ -3,9 +3,9 @@ import BaseModel, { iBaseModel } from './BaseModel.js';
 
 export interface iTiposMedicamentosFields {
     tipo_id : number,
-    tipo_codigo : string,
-    tipo_descr : string,
-    tipo_ativo : 0 | 1
+    tipo_codigo : string | null,
+    tipo_descr : string | null,
+    tipo_ativo : 0 | 1 | null,
     tipo_vincul : string | null
 }
 
@@ -20,9 +20,9 @@ export default class TiposMedicamentos extends BaseModel implements iBaseModel, 
 
         const initFields: iTiposMedicamentosFields = {
             tipo_id: 0,
-            tipo_codigo: '',
-            tipo_descr: '',
-            tipo_ativo: 0,
+            tipo_codigo: null,
+            tipo_descr: null,
+            tipo_ativo: null,
             tipo_vincul: null
         };
 
@@ -35,14 +35,14 @@ export default class TiposMedicamentos extends BaseModel implements iBaseModel, 
     set tipo_id(id : number) { this._fields.tipo_id = id;}
     get tipo_id() :number {return this._fields.tipo_id;}
 
-    set tipo_codigo(codigo : string) { this._fields.tipo_codigo = codigo;}
-    get tipo_codigo() :string {return this._fields.tipo_codigo;}
+    set tipo_codigo(codigo : string | null) { this._fields.tipo_codigo = codigo;}
+    get tipo_codigo() :string | null {return this._fields.tipo_codigo;}
 
-    set tipo_descr(descr : string) { this._fields.tipo_descr = descr;}
-    get tipo_descr() :string {return this._fields.tipo_descr;}
+    set tipo_descr(descr : string | null) { this._fields.tipo_descr = descr;}
+    get tipo_descr() :string | null {return this._fields.tipo_descr;}
 
-    set tipo_ativo(ativo : 0 | 1) { this._fields.tipo_ativo = ativo;}
-    get tipo_ativo() : 0 | 1 {return this._fields.tipo_ativo;}
+    set tipo_ativo(ativo : 0 | 1 | null) { this._fields.tipo_ativo = ativo;}
+    get tipo_ativo() : 0 | 1 | null {return this._fields.tipo_ativo;}
 
     set tipo_vincul(vincul : string | null) { this._fields.tipo_vincul = vincul;}
     get tipo_vincul() : string | null {return this._fields.tipo_vincul;}
