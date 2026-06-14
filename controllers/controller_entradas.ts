@@ -142,6 +142,7 @@ export default class Controller_Entradas {
             const ent_doc_informado = ent_doc.trim().length > 0;
             const ent_for_id = Number(req.body.ent_for_id || 0);
             const ent_dep_id = Number(req.body.ent_dep_id || 0);
+            const ent_user_digit = String(req.body.ent_user_digit || null);
             const itens = Array.isArray(req.body.itens) ? req.body.itens : null
 
             if (Number.isNaN(ent_date.getTime())) {
@@ -158,6 +159,12 @@ export default class Controller_Entradas {
 
             if (ent_dep_id <= 0) {
                 const error = new Error('Depósito de destino é obrigatório.');
+                error.statusCode = 400;
+                throw error;
+            }
+
+            if (ent_user_digit === null || ent_user_digit.trim().length === 0) {
+                const error = new Error('Usuário digitador é obrigatório.');
                 error.statusCode = 400;
                 throw error;
             }
@@ -187,6 +194,8 @@ export default class Controller_Entradas {
             entradas.ent_dep_id = ent_dep_id;
             entradas.ent_for_id = ent_for_id;
             entradas.ent_status = 0;
+            entradas.ent_user_digit = ent_user_digit;
+            entradas.ent_dt_digit = new Date();
 
             await entradas.Salvar();
 

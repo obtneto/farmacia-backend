@@ -115,7 +115,7 @@ export default class BaseModel implements iBaseModel{
 
     private buildInsertQuery() {
         
-        const fields = Object.keys(this._fields).filter(f => this._fields[f] !== 0);
+        const fields = Object.keys(this._fields).filter(f => this._fields[f] !== null && this._fields[f] !== undefined);
         const assignments = fields.map(f => `${f} = :${f}`).join(', ');
 
         return `INSERT INTO ${this._tb_name} SET ${assignments}`;

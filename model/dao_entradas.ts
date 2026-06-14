@@ -4,10 +4,14 @@ import BaseModel, { iBaseModel } from "./BaseModel.js";
 export interface iEntradaFields {
     ent_id: number;
     ent_dep_id: number | null,
-    ent_date: Date | string | null;
-    ent_doc: string | null;
-    ent_for_id: number | null;
-    ent_status: number | null
+    ent_date: Date | string | null,
+    ent_doc: string | null,
+    ent_for_id: number | null,
+    ent_status: number | null,
+    ent_user_digit: string | null,
+    ent_dt_digit: Date | string | null,
+    ent_user_aprov: string | null,
+    ent_dt_aprov: Date | string | null
 }
 
 export default class Entradas extends BaseModel implements iEntradaFields, iBaseModel {
@@ -24,7 +28,11 @@ export default class Entradas extends BaseModel implements iEntradaFields, iBase
             ent_doc: null,
             ent_for_id: null,
             ent_dep_id: null,
-            ent_status: null
+            ent_status: null,
+            ent_user_digit: null,
+            ent_dt_digit: null,
+            ent_user_aprov: null,
+            ent_dt_aprov: null
         };
 
         super(connection, 'tb_entradas', initialFields, 'ent_id');
@@ -50,15 +58,34 @@ export default class Entradas extends BaseModel implements iEntradaFields, iBase
     set ent_status(ent_status: number | null) {this._fields.ent_status = ent_status}
     get ent_status(): number | null {return this._fields.ent_status}
 
+    set ent_user_digit(ent_user_digit: string | null) { this._fields.ent_user_digit = ent_user_digit; }
+    get ent_user_digit(): string | null { return this._fields.ent_user_digit; }
+
+    set ent_dt_digit(ent_dt_digit: Date | string | null) { this._fields.ent_dt_digit = ent_dt_digit; }
+    get ent_dt_digit(): Date | string | null { return this._fields.ent_dt_digit; }
+
+    set ent_user_aprov(ent_user_aprov: string | null) { this._fields.ent_user_aprov = ent_user_aprov; }
+    get ent_user_aprov(): string | null { return this._fields.ent_user_aprov; }
+
+    set ent_dt_aprov(ent_dt_aprov: Date | string | null) { this._fields.ent_dt_aprov = ent_dt_aprov; }
+    get ent_dt_aprov(): Date | string | null { return this._fields.ent_dt_aprov; }
+
     async ListarPeriodo(pesq: string, data_inicio: Date, data_fim: Date,dep_id:number): Promise<RowDataPacket[]> {
 
         let query = `SELECT
                         e.ent_id AS id,
                         e.ent_date AS data,
                         e.ent_doc AS documento,
-                        f.for_razao_social AS fornecedor
+                        f.for_razao_social AS fornecedor,
+                        e.ent_status AS status,
+                        d.dep_descr AS deposito,
+                        e.ent_user_digit AS user_digitacao,
+                        e.ent_dt_digit AS dt_digitacao,
+                        e.ent_user_aprov AS user_aprovacao,
+                        e.ent_dt_aprov AS dt_aprovacao
                      FROM tb_entradas e
                      LEFT JOIN tb_fornecedores f ON f.for_id = e.ent_for_id
+                     LEFT JOIN tb_depositos d ON d.dep_id = e.ent_dep_id
                      WHERE e.ent_dep_id = :dep_id AND (e.ent_date >= :data_inicio
                        AND e.ent_date <= :data_fim) AND e.ent_status = 1`;
 
@@ -90,9 +117,13 @@ export default class Entradas extends BaseModel implements iEntradaFields, iBase
                         e.ent_date AS data,
                         e.ent_doc AS documento,
                         f.for_razao_social AS fornecedor,
-                        e.ent_status AS status
+                        e.ent_status AS status,
+                        d.dep_descr AS deposito,
+                        e.ent_user_digit AS user_digitacao,
+                        e.ent_dt_digit AS dt_digitacao
                      FROM tb_entradas e
                      LEFT JOIN tb_fornecedores f ON f.for_id = e.ent_for_id
+                     LEFT JOIN tb_depositos d ON d.dep_id = e.ent_dep_id
                      WHERE e.ent_status = 0 AND e.ent_dep_id = :dep_id AND (e.ent_date >= :data_inicio
                        AND e.ent_date <= :data_fim) AND e.ent_status = 0`;
 
