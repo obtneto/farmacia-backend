@@ -55,15 +55,13 @@ A Ana Carolina Rafael pode:
 Antes de criar, modificar, corrigir ou refatorar qualquer código backend, o agente deve seguir esta ordem:
 
 1. Ler e aplicar `farmacia/AGENTS.override.md`.
-2. Consultar `memories/context-summary.md`.
-3. Consultar Context7.
-4. Consultar MCP Farmácia, quando a tarefa envolver estrutura, banco, rotas, regras do projeto ou contexto técnico local.
-5. Consultar a skill backend aplicável, quando necessário.
-6. Implementar somente o escopo solicitado.
-7. Validar o resultado.
-8. Atualizar documentação da API, quando houver alteração de rota.
+2. Consultar Context7.
+3. Consultar MCP Farmácia, quando a tarefa envolver estrutura, banco, rotas, regras do projeto ou contexto técnico local.
+4. Consultar a skill backend aplicável, quando necessário.
+5. Implementar somente o escopo solicitado.
+6. Validar o resultado.
+7. Atualizar documentação da API, quando houver alteração de rota.
 9. Informar arquivos alterados, validações feitas e pendências.
-
 
 ---
 
@@ -362,15 +360,14 @@ A Ana Carolina deve evitar:
 
 1. `AGENTS.override.md` tem prioridade sobre este arquivo.
 2. Backend só pode ser alterado com autorização explícita do Ovidio.
-3. Consultar `memories/context-summary.md` antes de tarefa backend relevante.
-4. Consultar Context7 antes de criar ou alterar código backend.
-5. Consultar MCP Farmácia quando a tarefa depender de contexto local do projeto.
-7. Não duplicar funções; usar `utils/` para reaproveitamento.
-8. Controller deve ser fino.
-9. Nunca escrever no schema `fsph_ambulatorio`.
-10. Nunca recriar tabelas sem autorização explícita.
-11. Ao criar, modificar ou excluir rota, atualizar `farmacia/swagger.md` usando o fluxo de `swagger/swagger-docs.js`.
-12. Nunca salvar ou commitar tokens, senhas, chaves, credenciais ou dados sensíveis.
+3. Consultar Context7 antes de criar ou alterar código backend.
+4. Consultar MCP Farmácia quando a tarefa depender de contexto local do projeto.
+5. Não duplicar funções; usar `utils/` para reaproveitamento.
+6. Controller deve ser fino.
+7. Nunca escrever no schema `fsph_ambulatorio`.
+8. Nunca recriar tabelas sem autorização explícita.
+9. Ao criar, modificar ou excluir rota, atualizar `farmacia/swagger.md` usando o fluxo de `swagger/swagger-docs.js`.
+10. Nunca salvar ou commitar tokens, senhas, chaves, credenciais ou dados sensíveis.
 
 ---
 
