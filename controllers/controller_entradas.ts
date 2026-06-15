@@ -357,7 +357,14 @@ export default class Controller_Entradas {
             await db.Connect();
             await db.Begin();
 
-            const ent_id = Number(req.params.ent_id || 0);
+            const ent_id = Number(req.body.ent_id || 0);
+            const user_aprov = String(req.body.user_aprov || null);
+
+            if (user_aprov === null || user_aprov.trim().length === 0) {
+                const error = new Error('Usuário aprovador é obrigatório.');
+                error.statusCode = 400;
+                throw error;
+            }
 
             if (ent_id <= 0) {
                 const error = new Error('ID da entrada inválido');
@@ -369,6 +376,7 @@ export default class Controller_Entradas {
             const estoque = new Estoque(db.connection);
             const itensEntradas = new ItensEntradas(db.connection);
 
+            // Verificar se a entrada existe e está pendente e salvar dados de aprovação
             await entradas.BuscarPorId(ent_id);
 
             if (!entradas.found) {
@@ -383,6 +391,7 @@ export default class Controller_Entradas {
                 throw error;
             }
 
+            // Atualizar estoque para cada item da entrada
             const itens = await itensEntradas.ListarItens(ent_id);
 
             for (const item of itens) {
@@ -393,6 +402,7 @@ export default class Controller_Entradas {
                 const est_validade = item.validade || null;
                 const est_qtde = item.quantidade || 0;
 
+                // Buscar o item de estoque correspondente para atualizar ou criar
                 await estoque.BuscarPorItemEstoque(est_dep_id, est_med_id, est_lote);
 
                 if (estoque.found) {
@@ -417,7 +427,11 @@ export default class Controller_Entradas {
                 await estoque.Salvar();
             }
 
+            // Atualizar status da entrada para aprovada e salvar dados de aprovação
             entradas.ent_status = 1;
+            entradas.ent_user_aprov = user_aprov;
+            entradas.ent_dt_aprov = new Date();
+
             await entradas.Salvar();
 
             await db.Commit();
