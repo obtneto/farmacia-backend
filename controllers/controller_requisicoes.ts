@@ -310,13 +310,13 @@ export default class Controller_Requisicoes {
                 throw error;
             }
 
-            if (estoque.est_saldo < item.req_qtde) {
+            if (estoque.est_saldo_disponivel < item.req_qtde) {
                 const error = new Error('Saldo em estoque insuficiente.') as any;
                 error.statusCode = 400;
                 throw error;
             }
 
-            estoque.est_saldo -= item.req_qtde;
+            estoque.est_saldo_disponivel -= item.req_qtde;
 
             await estoque.Salvar();
             

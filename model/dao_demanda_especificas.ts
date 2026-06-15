@@ -7,8 +7,8 @@ export interface iDemandasEspecificasFields {
     dem_medico_assis : string | null,
     dem_medico_crm : string | null,
     dem_med_id : number | null,    
-    dem_qtde_medicamento: number | null,
-    dem_qtde_doses: number | null,
+    dem_qtde_medicamento: number,
+    dem_qtde_doses: number,
     dem_ativo : 0 | 1 | null,
 }
 
@@ -28,8 +28,8 @@ export default class DemandasEspecificas extends BaseModel implements iBaseModel
             dem_medico_assis: null,
             dem_medico_crm: null,
             dem_med_id: null,
-            dem_qtde_medicamento: null,
-            dem_qtde_doses: null,
+            dem_qtde_medicamento: 0,
+            dem_qtde_doses: 0,
             dem_ativo: null,
         }
         
@@ -55,11 +55,11 @@ export default class DemandasEspecificas extends BaseModel implements iBaseModel
     set dem_med_id(med_id: number | null) {this._fields.dem_med_id = med_id;}
     get dem_med_id(): number | null {return this._fields.dem_med_id;}
     
-    set dem_qtde_medicamento(qtde_medicamento: number | null) {this._fields.dem_qtde_medicamento = qtde_medicamento;}
-    get dem_qtde_medicamento(): number | null {return this._fields.dem_qtde_medicamento;}
+    set dem_qtde_medicamento(qtde_medicamento: number) {this._fields.dem_qtde_medicamento = qtde_medicamento;}
+    get dem_qtde_medicamento(): number {return this._fields.dem_qtde_medicamento;}
 
-    set dem_qtde_doses(qtde_doses: number | null) {this._fields.dem_qtde_doses = qtde_doses;}
-    get dem_qtde_doses(): number | null {return this._fields.dem_qtde_doses;}
+    set dem_qtde_doses(qtde_doses: number) {this._fields.dem_qtde_doses = qtde_doses;}
+    get dem_qtde_doses(): number {return this._fields.dem_qtde_doses;}
     
     set dem_ativo(ativo: 0 | 1 | null) {this._fields.dem_ativo = ativo;}
     get dem_ativo(): 0 | 1 | null {return this._fields.dem_ativo;}

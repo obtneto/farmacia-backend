@@ -6,8 +6,8 @@ export interface iEstoqueFields {
     est_dep_id: number | null,
     est_med_id: number | null,
     est_lote: string | null,
-    est_saldo_disponivel: number | null,
-    est_saldo_bloqueado: number | null,
+    est_saldo_disponivel: number,
+    est_saldo_bloqueado: number,
     est_validade: Date | string | null
 }
 
@@ -26,8 +26,8 @@ export default class Estoque extends BaseModel implements iEstoqueFields, iBaseM
             est_dep_id: null,
             est_med_id: null,
             est_lote: null,
-            est_saldo_disponivel: null,
-            est_saldo_bloqueado: null,
+            est_saldo_disponivel: 0,
+            est_saldo_bloqueado: 0,
             est_validade: null,
         };
         
@@ -50,11 +50,11 @@ export default class Estoque extends BaseModel implements iEstoqueFields, iBaseM
     set est_lote(lote: string | null) { this._fields.est_lote = lote;}
     get est_lote(): string | null {return this._fields.est_lote;}
 
-    set est_saldo_disponivel(saldo_disponivel: number | null) { this._fields.est_saldo_disponivel = saldo_disponivel;}
-    get est_saldo_disponivel(): number | null {return this._fields.est_saldo_disponivel;}
+    set est_saldo_disponivel(saldo_disponivel: number) { this._fields.est_saldo_disponivel = saldo_disponivel;}
+    get est_saldo_disponivel(): number {return this._fields.est_saldo_disponivel;}
 
-    set est_saldo_bloqueado(saldo_bloqueado: number | null) { this._fields.est_saldo_bloqueado = saldo_bloqueado;}
-    get est_saldo_bloqueado(): number | null {return this._fields.est_saldo_bloqueado;}
+    set est_saldo_bloqueado(saldo_bloqueado: number) { this._fields.est_saldo_bloqueado = saldo_bloqueado;}
+    get est_saldo_bloqueado(): number {return this._fields.est_saldo_bloqueado;}
 
     set est_validade(validade: Date | string | null) { this._fields.est_validade = validade;}
     get est_validade(): Date | string | null{return this._fields.est_validade;}
