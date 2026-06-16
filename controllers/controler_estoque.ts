@@ -159,7 +159,7 @@ export default class Controller_Estoque {
             estoque.est_dep_id = est_dep_id;
             estoque.est_med_id = est_med_id;
             estoque.est_lote = est_lote;
-            estoque.est_saldo = est_saldo;
+            estoque.est_saldo_disponivel = est_saldo;
             estoque.est_validade = est_validade;
             
             await estoque.Salvar();
@@ -167,6 +167,126 @@ export default class Controller_Estoque {
             void await db.Commit();
 
             resdata.msg = "Estoque atualizado com sucesso";
+            
+        } catch (error :any) {
+
+            void await db.Rollback();
+            
+            applyControllerError(resdata, error, 'Controller Estoque');
+        }
+        
+        return res.status(resdata.status).json(resdata);
+        
+    }
+
+    static async Transferir(req: Request, res: Response) {
+
+        const db : iDatabase = new Database();
+
+        const resdata : iresdata = {
+            err: 0,
+            msg: '',
+            status: 200,
+            data: {}
+        }
+
+        try {
+            
+            void await db.Connect();
+
+            void await db.Begin();
+            
+            const est_dep_id_origem = Number(req.body.est_dep_id_origem) || 0;
+            const est_dep_id_destino = Number(req.body.est_dep_id_destino) || 0;
+            const list_itens = req.body.list_itens || [];
+            
+            if (est_dep_id_origem === 0) {
+                const error = new Error("Departamento de origem não informado") as any;
+                error.statusCode = 400;
+                throw error;
+            }
+
+            if (est_dep_id_destino === 0) {
+                const error = new Error("Departamento de destino não informado") as any;
+                error.statusCode = 400;
+                throw error;
+            }
+            
+            if (!Array.isArray(list_itens) || list_itens.length === 0) {
+                const error = new Error("Lista de itens não informada ou vazia") as any;
+                error.statusCode = 400;
+                throw error;
+            }
+
+            for (const item of list_itens) {
+
+                const med_id = Number(item.med_id) || 0;
+                const lote = String(item.lote || '');
+                const quantidade = Number(item.quantidade) || 0;
+
+                if (med_id === 0) {
+                    const error = new Error("Medicamento não informado para um dos itens") as any;
+                    error.statusCode = 400;
+                    throw error;
+                }
+
+                if (lote === '') {
+                    const error = new Error("Lote não informado para um dos itens") as any;
+                    error.statusCode = 400;
+                    throw error;
+                }
+
+                if (quantidade === 0) {
+                    const error = new Error("Quantidade não informada para um dos itens") as any;
+                    error.statusCode = 400;
+                    throw error;
+                }
+
+                const estoqueOrigem = new Estoque(db.connection);
+
+                await estoqueOrigem.BuscarPorItemEstoque(med_id, est_dep_id_origem, lote);
+
+                if (!estoqueOrigem.found) {
+                    const error = new Error(`Item não encontrado no estoque de origem para med_id ${med_id}, lote ${lote}`) as any;
+                    error.statusCode = 404;
+                    throw error;
+                }
+
+                if (estoqueOrigem.est_saldo_disponivel < quantidade) {
+                    const error = new Error(`Saldo insuficiente no estoque de origem para med_id ${med_id}, lote ${lote}`) as any;
+                    error.statusCode = 400;
+                    throw error;
+                }
+
+                estoqueOrigem.est_saldo_disponivel -= quantidade;
+
+                await estoqueOrigem.Salvar();
+
+                // Verificar se já existe um estoque para o mesmo medicamento, lote e departamento de destino
+                const estoqueDestino = new Estoque(db.connection);
+
+                await estoqueDestino.BuscarPorItemEstoque(med_id, est_dep_id_destino, lote);
+
+                if (estoqueDestino.found) {
+                    // Se existir, atualizar o saldo disponível
+                    estoqueDestino.est_saldo_disponivel += quantidade;
+                    
+                } else {
+                    // Se não existir, criar um novo registro de estoque
+                    estoqueDestino.est_dep_id = est_dep_id_destino;
+                    estoqueDestino.est_med_id = med_id;
+                    estoqueDestino.est_lote = lote;
+                    estoqueDestino.est_saldo_disponivel = quantidade;
+                    estoqueDestino.est_validade = estoqueOrigem.est_validade; // Manter a mesma validade do estoque de origem
+                    
+                }
+
+                await estoqueDestino.Salvar();
+            }
+
+            void await db.Commit();
+
+            resdata.msg = "Transferência realizada com sucesso";
             
         } catch (error :any) {
 

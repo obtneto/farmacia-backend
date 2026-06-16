@@ -167,6 +167,7 @@ export default class Controller_Depositos {
             depositos.dep_id = dep_id;
             depositos.dep_descr = dep_descr.toLocaleUpperCase();
             depositos.dep_ativo = dep_ativo;
+            depositos.dep_bloqueado = depositos.found ? depositos.dep_bloqueado : 0;
 
             void await depositos.Salvar();
 

@@ -14,6 +14,7 @@ import routes_auth from './routes/routes_auth.js';
 import {globalErrorHandler} from './utils/ErrorMiddleware.js';
 import routes_entradas from './routes/routes_entradas.js';
 import routes_demandas_especificas from './routes/routes_demandas_especificas.js';
+import routes_estoque from './routes/routes_estoque.js';
 import morgan from 'morgan';
 import helmet from 'helmet';
 
@@ -111,7 +112,8 @@ app.use('/parametros/fornecedores', routes_fornecedores);
 app.use('/requisicoes', routes_requisicoes);
 app.use('/entradas', routes_entradas);
 app.use('/demandas-especificas', routes_demandas_especificas);
-//app.use(globalErrorHandler);
+app.use('/estoque', routes_estoque);
+app.use(globalErrorHandler);
 
 app.listen(port, () => {
     console.log(`Server is running TS on port ${port}`);

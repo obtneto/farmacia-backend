@@ -64,12 +64,17 @@ export default class Estoque extends BaseModel implements iEstoqueFields, iBaseM
         let query: string = `SELECT 
                              m.med_id as id, 
                              m.med_descr as descricao, 
-                             m.med_desc_coml as descricao_comercial,
-                             m.und as unidade, 
+                             m.med_descr_coml as descricao_comercial,
+                             m.med_und as unidade, 
                              e.est_lote as lote,
                              e.est_saldo_bloqueado as saldo_bloqueado, 
                              e.est_saldo_disponivel as saldo_disponivel, 
-                             e.est_validade as validade 
+                             e.est_validade as validade, 
+                             m.med_alert as alerta_validade,
+                             CASE 
+                                WHEN DATEDIFF(e.est_validade, CURDATE()) < 0 THEN '-'
+                                ELSE DATEDIFF(e.est_validade, CURDATE())
+                             END AS dias_para_validade
                              FROM tb_estoque e
                              LEFT JOIN tb_medicamentos m ON e.est_med_id = m.med_id
                                 WHERE 
@@ -78,7 +83,7 @@ export default class Estoque extends BaseModel implements iEstoqueFields, iBaseM
                                 e.est_saldo_disponivel > 0`;
 
         if (pesq !== '*') {
-            query += " AND m.med_descr LIKE :pesq";
+            query += " AND m.med_descr LIKE :pesq OR m.med_descr_coml LIKE :pesq";
         }
 
         const [rows] = await this.ExecuteQuery(query, {pesq: `%${pesq}%`, dep_id, med_tipo_codigo});
@@ -103,8 +108,8 @@ export default class Estoque extends BaseModel implements iEstoqueFields, iBaseM
                 est_dep_id: null,
                 est_med_id: null,
                 est_lote: null,
-                est_saldo_disponivel: null,
-                est_saldo_bloqueado: null,
+                est_saldo_disponivel: 0,
+                est_saldo_bloqueado: 0,
                 est_validade: null
             });
         }
