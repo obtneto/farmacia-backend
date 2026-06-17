@@ -470,4 +470,55 @@ export default class Controller_Entradas {
         await db.Disconnect();
         return res.status(resdata.status).json(resdata);
     }
+
+    static async ExcluirEntradas(req: Request, res: Response) {
+
+        const db: iDatabase = new Database('fsph_farmacia');
+        const resdata: iresdata = { err: 0, msg: '', status: 200, data: [] };
+
+        try {
+
+            await db.Connect();
+            await db.Begin();
+
+            const ent_id = Number(req.params.ent_id || 0);
+
+            if (ent_id <= 0) {
+                const error = new Error('ID da entrada inválido') ;
+                error.statusCode = 400;
+                throw error;
+            }
+
+            const entradas = new Entradas(db.connection);
+            const itensEntradas = new ItensEntradas(db.connection);
+
+            await entradas.BuscarPorId(ent_id);
+
+            if (!entradas.found) {
+                const error = new Error('Entrada não encontrada.');
+                error.statusCode = 404;
+                throw error;
+            }
+
+            if (entradas.ent_status === 1) {
+                const error = new Error('Nao e permitido excluir uma entrada aprovada.');
+                error.statusCode = 400;
+                throw error;
+            }
+
+            await itensEntradas.ExcluirPorEntrada(ent_id);
+            await entradas.Excluir(ent_id);
+            await db.Commit();
+
+            resdata.msg = 'Entrada excluida com sucesso';
+            
+        } catch (error) {
+            await db.Rollback();
+            applyControllerError(resdata, error, 'Controller Entradas');
+        }
+
+        await db.Disconnect();
+        return res.status(resdata.status).json(resdata);
+    }   
 }
+
