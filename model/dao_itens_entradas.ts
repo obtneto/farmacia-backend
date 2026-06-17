@@ -52,7 +52,7 @@ export default class ItensEntradas extends baseModel implements iBaseModel,iItem
     set ite_ent_qtde(ite_ent_qtde: number | null) {this._fields.ite_ent_qtde = ite_ent_qtde }
     get ite_ent_qtde() :number | null {return this._fields.ite_ent_qtde}
 
-    public async ListarItens(ent_id :number) : Promise<RowDataPacket[]> {
+    public async ListarItens(ent_id :number, ) : Promise<RowDataPacket[]> {
 
         const query: string = `SELECT 
                                     i.ite_id as id, 

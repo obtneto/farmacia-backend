@@ -33,64 +33,68 @@ export default class Estoque extends BaseModel implements iEstoqueFields, iBaseM
     this.connection = connection
   }
 
-  get found(): boolean { return this._found }
+  get found(): boolean {return this._found}
+  set est_id(id: number) {this._fields.est_id = id}
 
-  set est_id(id: number) { this._fields.est_id = id }
-  get est_id(): number { return this._fields.est_id }
+  get est_id(): number {return this._fields.est_id}
+  set est_dep_id(dep_id: number | null) {this._fields.est_dep_id = dep_id}
 
-  set est_dep_id(dep_id: number | null) { this._fields.est_dep_id = dep_id }
-  get est_dep_id(): number | null { return this._fields.est_dep_id }
+  get est_dep_id(): number | null {return this._fields.est_dep_id}
 
-  set est_med_id(med_id: number | null) { this._fields.est_med_id = med_id }
-  get est_med_id(): number | null { return this._fields.est_med_id }
+  set est_med_id(med_id: number | null) { this._fields.est_med_id = med_id}
 
-  set est_lote(lote: string | null) { this._fields.est_lote = lote }
-  get est_lote(): string | null { return this._fields.est_lote }
+  get est_med_id(): number | null {return this._fields.est_med_id}
+  set est_lote(lote: string | null) {this._fields.est_lote = lote}
 
-  set est_saldo_disponivel(saldo_disponivel: number) { this._fields.est_saldo_disponivel = saldo_disponivel }
-  get est_saldo_disponivel(): number { return this._fields.est_saldo_disponivel }
+  get est_lote(): string | null {return this._fields.est_lote}
+  set est_saldo_disponivel(saldo_disponivel: number) {this._fields.est_saldo_disponivel = saldo_disponivel}
 
-  set est_saldo_bloqueado(saldo_bloqueado: number) { this._fields.est_saldo_bloqueado = saldo_bloqueado }
-  get est_saldo_bloqueado(): number { return this._fields.est_saldo_bloqueado }
+  get est_saldo_disponivel(): number {return this._fields.est_saldo_disponivel}
+  set est_saldo_bloqueado(saldo_bloqueado: number) {this._fields.est_saldo_bloqueado = saldo_bloqueado}
 
-  set est_validade(validade: Date | string | null) { this._fields.est_validade = validade }
-  get est_validade(): Date | string | null { return this._fields.est_validade }
+  get est_saldo_bloqueado(): number {return this._fields.est_saldo_bloqueado}
+  set est_validade(validade: Date | string | null) {this._fields.est_validade = validade}
+
+  get est_validade(): Date | string | null {return this._fields.est_validade}
 
   async ListarAtivos(pesq: string = '', dep_id: number, med_tipo_codigo: string): Promise<RowDataPacket[]> {
     
     let query = `SELECT
-                  m.med_id AS id,
-                  m.med_descr AS descricao,
-                  m.med_descr_coml AS descricao_comercial,
-                  m.med_und AS unidade,
-                  e.est_lote AS lote,
-                  e.est_saldo_bloqueado AS saldo_bloqueado,
-                  e.est_saldo_disponivel AS saldo_disponivel,
-                  e.est_validade AS validade,
-                  m.med_alert AS alerta_validade,
-                  CASE
-                    WHEN DATEDIFF(e.est_validade, CURDATE()) < 0 THEN '-'
-                    ELSE DATEDIFF(e.est_validade, CURDATE())
-                  END AS dias_para_validade
-                FROM tb_estoque e
-                LEFT JOIN tb_medicamentos m ON e.est_med_id = m.med_id
-                WHERE e.est_dep_id = :dep_id
-                  AND e.est_saldo_disponivel > 0`
+      m.med_id AS id,
+      m.med_descr AS descricao,
+      m.med_descr_coml AS descricao_comercial,
+      m.med_und AS unidade,
+      e.est_lote AS lote,
+      e.est_saldo_bloqueado AS saldo_bloqueado,
+      e.est_saldo_disponivel AS saldo_disponivel,
+      e.est_validade AS validade,
+      m.med_alert AS alerta_validade,
+      CASE
+        WHEN DATEDIFF(e.est_validade, CURDATE()) < 0 THEN '-'
+        ELSE DATEDIFF(e.est_validade, CURDATE())
+      END AS dias_para_validade
+    FROM tb_estoque e
+    LEFT JOIN tb_medicamentos m ON e.est_med_id = m.med_id
+    WHERE e.est_dep_id = :dep_id
+      AND e.est_saldo_disponivel > 0
+      AND m.med_tipo_codigo = :med_tipo_codigo`
 
     if (pesq !== '*') {
       query += ' AND (m.med_descr LIKE :pesq OR m.med_descr_coml LIKE :pesq)'
     }
 
-    const [rows] = await this.ExecuteQuery(query, {dep_id, med_tipo_codigo, pesq: `%${pesq}%`}) as [RowDataPacket[]]
+    const [rows] = await this.ExecuteQuery(query, {
+      dep_id,
+      med_tipo_codigo,
+      pesq: `%${pesq}%`,
+    }) as [RowDataPacket[]]
 
     return rows as RowDataPacket[]
   }
 
   async BuscarPorItemEstoque(dep_id: number, med_id: number, lote: string): Promise<RowDataPacket> {
-
     const query = `SELECT * FROM tb_estoque WHERE est_dep_id = :dep_id AND est_med_id = :med_id AND est_lote = :lote`
-
-    const [rows] = await this.connection.query(query, { dep_id, med_id, lote }) as RowDataPacket[]
+    const [rows] = await this.connection.query(query, { dep_id, med_id, lote }) as [RowDataPacket[], unknown]
 
     if (rows && rows.length > 0) {
       this.populateFromRow(rows[0])

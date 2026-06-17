@@ -1,5 +1,6 @@
 import {Connection,RowDataPacket} from 'mysql2/promise';
 import BaseModel, { iBaseModel } from './BaseModel.js';
+import { string } from 'zod';
 
 export interface iMovimentacoesFields {
     mov_id : number,
@@ -7,10 +8,13 @@ export interface iMovimentacoesFields {
     mov_tipo : string | null,
     mov_descr : string | null,
     mov_qtde : number | null,
-    mov_med_id : number | null
+    mov_med_id : number | null,
+    mov_med_lote: string | null,
+    mov_documento: string | null,
+    mov_user: string | null
 }
 
-export default class Movimentacoes extends BaseModel implements iMovimentacoesFields, iBaseModel{
+export default class Movimentacoes extends BaseModel implements iMovimentacoesFields, iBaseModel {
 
     constructor(connection : Connection) {
 
@@ -18,44 +22,57 @@ export default class Movimentacoes extends BaseModel implements iMovimentacoesFi
             throw new Error("Conexão com o banco de dados não estabelecida.");
         }
 
-            const initFields : iMovimentacoesFields = {
+        const initFields : iMovimentacoesFields = {
             mov_id: 0,
             mov_date: null,
             mov_tipo: null,
             mov_descr: null,
             mov_qtde: null,
-            mov_med_id: null
-            };
+            mov_med_id: null,
+            mov_med_lote: null,
+            mov_documento: null,
+            mov_user: null
+        };
 
-            super(connection,'tb_movimentacoes',initFields,'mov_id');
+        super(connection,'tb_movimentacoes',initFields,'mov_id');
 
-        }
+    }
 
-        get found(): boolean {return this._found;}
+    get found(): boolean {return this._found;}
 
-        set mov_id(id: number) { this._fields.mov_id = id;}
-        get mov_id(): number {return this._fields.mov_id;}
+    set mov_id(id: number) { this._fields.mov_id = id;}
+    get mov_id(): number {return this._fields.mov_id;}
 
-        set mov_date(date: Date | null) { this._fields.mov_date = date;}
-        get mov_date(): Date | null {return this._fields.mov_date;}
+    set mov_date(date: Date | null) { this._fields.mov_date = date;}
+    get mov_date(): Date | null {return this._fields.mov_date;}
 
-        set mov_tipo(tipo: string | null) { this._fields.mov_tipo = tipo;}  
-        get mov_tipo(): string | null {return this._fields.mov_tipo;}
+    set mov_tipo(tipo: string | null) { this._fields.mov_tipo = tipo;}  
+    get mov_tipo(): string | null {return this._fields.mov_tipo;}
 
-        set mov_descr(descr: string | null) { this._fields.mov_descr = descr;}
-        get mov_descr(): string | null {return this._fields.mov_descr;}
+    set mov_descr(descr: string | null) { this._fields.mov_descr = descr;}
+    get mov_descr(): string | null {return this._fields.mov_descr;}
 
-        set mov_qtde(qtde: number | null) { this._fields.mov_qtde = qtde;}      
-        get mov_qtde(): number | null {return this._fields.mov_qtde;}
+    set mov_qtde(qtde: number | null) { this._fields.mov_qtde = qtde;}      
+    get mov_qtde(): number | null {return this._fields.mov_qtde;}
 
-        set mov_med_id(med_id: number | null) { this._fields.mov_med_id = med_id;}
-        get mov_med_id(): number | null {return this._fields.mov_med_id;}
+    set mov_med_id(med_id: number | null) { this._fields.mov_med_id = med_id;}
+    get mov_med_id(): number | null {return this._fields.mov_med_id;}
+
+    set mov_med_lote(med_lote: string | null) {this._fields.mov_med_lote = med_lote}
+    get mov_med_lote():  string | null {return this._fields.mov_med_lote}
+
+    set mov_documento(mov_documento: string | null) {this._fields.mov_documento = mov_documento}
+    get mov_documento(): string | null {return this._fields.mov_documento}
+
+    set mov_user(mov_user: string | null) {this._fields.mov_user = mov_user}
+    get mov_user(): string | null { return this._fields.mov_user}
 
     public async Listar(pesq: string,data_ini: Date,data_fim: Date,tipo_med: string) : Promise<RowDataPacket[]>{
 
         let query: string = `SELECT mv.*, med_nome FROM tb_movimentacoes mv
                              LEFT JOIN tb_medicamentos md ON mv.mov_med_id = md.med_id AND (mv.mov_descr LIKE :pesq OR md.med_nome LIKE :pesq)
-                             WHERE mv.mov_date >= :data_ini AND mv.mov_date <= :data_fim AND md.med_tipo LIKE :tipo_med`;
+                             WHERE mv.mov_date >= :data_ini AND mv.mov_date <= :data_fim AND md.med_tipo LIKE :tipo_med
+                             ORDER BY mv.mov_id,md.med_id,mv.mov_med_lote`;
  
         if (pesq !== '*') {
             query += " WHERE md.med_nome LIKE :pesq";

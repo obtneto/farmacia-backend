@@ -420,10 +420,7 @@ export default class Controller_Entradas {
                 if (estoque.found) {
                     
                     estoque.est_saldo_disponivel += est_qtde;
-                    
-                    if (est_validade) {
-                        estoque.est_validade = est_validade;
-                    }
+                    estoque.est_validade = est_validade;
                    
                 } else {
 
@@ -443,9 +440,12 @@ export default class Controller_Entradas {
 
                 movimentacoes.mov_date = new Date();
                 movimentacoes.mov_tipo = 'ENT';
-                movimentacoes.mov_descr = `Entrada medicamento Lote ${est_lote} para o depósito: ${depositos.dep_descr}`;
+                movimentacoes.mov_descr = `Entrada medicamento para o depósito: ${depositos.dep_descr}`;
                 movimentacoes.mov_qtde = est_qtde;
                 movimentacoes.mov_med_id = est_med_id;
+                movimentacoes.mov_med_lote = est_lote;
+                movimentacoes.mov_documento = entradas.ent_doc;
+                movimentacoes.mov_user = user_aprov;
 
                 await movimentacoes.Salvar();
 
