@@ -79,7 +79,7 @@ export default class Controller_Estoque {
             
             const estoque = new Estoque(db.connection);
 
-            const result = await estoque.BuscarPorItemEstoque(med_id, dep_id, lote);
+            const result = await estoque.BuscarPorItemEstoque(dep_id, med_id, lote);
             
             if (!result) {
                 const error = new Error('Item não encontrado.') as any;
@@ -244,7 +244,7 @@ export default class Controller_Estoque {
 
                 const estoqueOrigem = new Estoque(db.connection);
 
-                await estoqueOrigem.BuscarPorItemEstoque(med_id, est_dep_id_origem, lote);
+                await estoqueOrigem.BuscarPorItemEstoque(est_dep_id_origem, med_id, lote);
 
                 if (!estoqueOrigem.found) {
                     const error = new Error(`Item não encontrado no estoque de origem para med_id ${med_id}, lote ${lote}`) as any;
@@ -265,7 +265,7 @@ export default class Controller_Estoque {
                 // Verificar se já existe um estoque para o mesmo medicamento, lote e departamento de destino
                 const estoqueDestino = new Estoque(db.connection);
 
-                await estoqueDestino.BuscarPorItemEstoque(med_id, est_dep_id_destino, lote);
+                await estoqueDestino.BuscarPorItemEstoque(est_dep_id_destino, med_id, lote);
 
                 if (estoqueDestino.found) {
                     // Se existir, atualizar o saldo disponível
