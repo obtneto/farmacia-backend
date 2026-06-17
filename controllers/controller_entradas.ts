@@ -4,6 +4,8 @@ import Entradas from "../model/dao_entradas.js";
 import Estoque from "../model/dao_estoque.js";
 import ItensEntradas from "../model/dao_itens_entradas.js";
 import Medicamentos from "../model/dao_medicamentos.js";
+import Movimentacoes from "../model/dao_movimentacoes.js";
+import Depositos from "../model/dao_depositos.js";
 import { iresdata } from "./interface_controllers.js";
 import { applyControllerError } from "../utils/controllerError.js";
 
@@ -375,6 +377,8 @@ export default class Controller_Entradas {
             const entradas = new Entradas(db.connection);
             const estoque = new Estoque(db.connection);
             const itensEntradas = new ItensEntradas(db.connection);
+            const movimentacoes = new Movimentacoes(db.connection);
+            const depositos = new Depositos(db.connection);
 
             // Verificar se a entrada existe e está pendente e salvar dados de aprovação
             await entradas.BuscarPorId(ent_id);
@@ -402,6 +406,14 @@ export default class Controller_Entradas {
                 const est_validade = item.validade || null;
                 const est_qtde = item.quantidade || 0;
 
+                await depositos.BuscarPorId(est_dep_id);
+
+                if (!depositos.found) {
+                    const error = new Error(`Depósito ${est_dep_id} não encontrado.`);
+                    error.statusCode = 404;
+                    throw error;
+                }
+
                 // Buscar o item de estoque correspondente para atualizar ou criar
                 await estoque.BuscarPorItemEstoque(est_dep_id, est_med_id, est_lote);
 
@@ -425,6 +437,18 @@ export default class Controller_Entradas {
                 }
 
                 await estoque.Salvar();
+
+                // Registrar movimentação de entrada
+                await movimentacoes.BuscarPorId(0);
+
+                movimentacoes.mov_date = new Date();
+                movimentacoes.mov_tipo = 'ENT';
+                movimentacoes.mov_descr = `Entrada medicamento Lote ${est_lote} para o depósito: ${depositos.dep_descr}`;
+                movimentacoes.mov_qtde = est_qtde;
+                movimentacoes.mov_med_id = est_med_id;
+
+                await movimentacoes.Salvar();
+
             }
 
             // Atualizar status da entrada para aprovada e salvar dados de aprovação
