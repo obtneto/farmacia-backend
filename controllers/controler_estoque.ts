@@ -313,11 +313,17 @@ export default class Controller_Estoque {
 
                 await estoqueDestino.Salvar();
 
+                const anoAtual = new Date().getFullYear();
+                const mesAtual = (new Date().getMonth() + 1).toString().padStart(2,'0');
+                const numeroAleatorio = Math.floor(Math.random() * 11333).toString().padStart(4, '0');
+                
+                const mov_doc: string = `${anoAtual}${mesAtual}${numeroAleatorio}`;
+            
                 await movimentacoes.BuscarPorId(0)
 
                 movimentacoes.mov_date = new Date();
                 movimentacoes.mov_descr = `Transferencia entre Deposito : ${deposito_origem} para ${deposito_destino}`
-                movimentacoes.mov_documento = null;
+                movimentacoes.mov_documento = mov_doc;
                 movimentacoes.mov_med_id = med_id;
                 movimentacoes.mov_med_lote = lote;
                 movimentacoes.mov_qtde = quantidade;
@@ -331,7 +337,7 @@ export default class Controller_Estoque {
             void await db.Commit();
 
             resdata.msg = "Transferência realizada com sucesso";
-            resdata.data.numero_transacao = movimentacoes.mov_id.toString().padStart(6,'0');
+            resdata.data.numero_transacao = movimentacoes.mov_documento;
             
         } catch (error :any) {
 

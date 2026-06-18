@@ -111,6 +111,16 @@ const REQUEST_BODY_SCHEMAS = {
       },
     },
   },
+  'PUT /entradas/itens/{ite_id}': {
+    componentName: 'EntradasAtualizarItemPayload',
+    description: 'Payload para atualizar lote, validade e quantidade de um item vinculado a uma entrada pendente.',
+    required: ['ent_lote', 'ent_lote_validade', 'ent_qtde'],
+    properties: {
+      ent_lote: { type: 'string', example: 'LOTE-001', description: 'Novo lote do item.' },
+      ent_lote_validade: { type: 'string', format: 'date', example: '2027-01-31', description: 'Nova validade do lote.' },
+      ent_qtde: { type: 'number', example: 150, description: 'Nova quantidade do item.' },
+    },
+  },
   'POST /requisicoes/salvar': {
     componentName: 'RequisicoesSalvarPayload',
     description: 'Payload para salvar uma requisicao de medicamento.',

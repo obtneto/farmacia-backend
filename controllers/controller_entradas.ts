@@ -180,7 +180,7 @@ export default class Controller_Entradas {
             if (!ent_doc) {
                 const anoAtual = new Date().getFullYear();
                 const mesAtual = (new Date().getMonth() + 1).toString().padStart(2,'0');
-                const numeroAleatorio = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+                const numeroAleatorio = Math.floor(Math.random() * 11333).toString().padStart(4, '0');
                 
                 ent_doc = `${anoAtual}${mesAtual}${numeroAleatorio}`;
             }
@@ -246,9 +246,9 @@ export default class Controller_Entradas {
         return res.status(resdata.status).json(resdata);
     }
 
-    static async ListarItens(req: Request, res: Response) {
+  static async ListarItens(req: Request, res: Response) {
 
-        const db : iDatabase = new Database('fsph_farmacia');
+    const db : iDatabase = new Database('fsph_farmacia');
 
         const resdata : iresdata = {
             err: 0,
@@ -279,12 +279,108 @@ export default class Controller_Entradas {
             applyControllerError(resdata, error, 'Controller Entradas');
         }
 
-        await db.Disconnect();
-        return res.status(resdata.status).json(resdata);
+    await db.Disconnect();
+    return res.status(resdata.status).json(resdata);
 
+  }
+
+  static async AtualizarItem(req: Request, res: Response) {
+
+    const db: iDatabase = new Database();
+
+    const resdata: iresdata = {
+        err: 0,
+        msg: '',
+        status: 200,
+        data: []
     }
 
-    static async ListarEntradasNaoAprovados(req: Request, res: Response) {
+    try {
+
+        await db.Connect();
+        await db.Begin();
+
+        const ite_id = Number(req.params.ite_id || 0);
+        const ent_lote = String(req.body.ent_lote || '').trim().toLocaleUpperCase('pt-BR');
+        const ent_lote_validade = new Date(req.body.ent_lote_validade);
+        const ent_qtde = Number(req.body.ent_qtde || 0);
+
+        if (ite_id <= 0) {
+            const error = new Error('ID do item inválido');
+            error.statusCode = 400;
+            throw error;
+        }
+
+        if (!ent_lote) {
+            const error = new Error('Lote do item é obrigatório.');
+            error.statusCode = 400;
+            throw error;
+        }
+
+        if (Number.isNaN(ent_lote_validade.getTime())) {
+            const error = new Error('Validade do item é obrigatória.');
+            error.statusCode = 400;
+            throw error;
+        }
+
+        if (!Number.isFinite(ent_qtde) || ent_qtde <= 0) {
+            const error = new Error('Quantidade do item deve ser maior que zero.');
+            error.statusCode = 400;
+            throw error;
+        }
+
+        const itensEntradas = new ItensEntradas(db.connection);
+        const entradas = new Entradas(db.connection);
+
+        await itensEntradas.BuscarPorId(ite_id);
+
+        if (!itensEntradas.found || !itensEntradas.ite_ent_id) {
+            const error = new Error('Item da entrada não encontrado.');
+            error.statusCode = 404;
+            throw error;
+        }
+
+        await entradas.BuscarPorId(Number(itensEntradas.ite_ent_id));
+
+        if (!entradas.found) {
+            const error = new Error('Entrada vinculada ao item não encontrada.');
+            error.statusCode = 404;
+            throw error;
+        }
+
+        if (Number(entradas.ent_status || 0) === 1) {
+            const error = new Error('Não é permitido editar item de entrada aprovada.');
+            error.statusCode = 400;
+            throw error;
+        }
+
+        itensEntradas.ite_ent_lote = ent_lote;
+        itensEntradas.ite_ent_lote_validade = ent_lote_validade;
+        itensEntradas.ite_ent_qtde = ent_qtde;
+
+        await itensEntradas.Salvar();
+        await db.Commit();
+
+        resdata.msg = 'Item da entrada atualizado com sucesso';
+        resdata.data = {
+            ite_id: itensEntradas.ite_id,
+            ite_ent_id: itensEntradas.ite_ent_id,
+            ite_ent_lote: itensEntradas.ite_ent_lote,
+            ite_ent_lote_validade: itensEntradas.ite_ent_lote_validade,
+            ite_ent_qtde: itensEntradas.ite_ent_qtde,
+        };
+
+    } catch (error) {
+        await db.Rollback();
+        applyControllerError(resdata, error, 'Controller Entradas');
+    }
+
+    await db.Disconnect();
+    return res.status(resdata.status).json(resdata);
+
+  }
+
+  static async ListarEntradasNaoAprovados(req: Request, res: Response) {
 
         const db : iDatabase = new Database('fsph_farmacia');
 
@@ -305,7 +401,7 @@ export default class Controller_Entradas {
             const data_fim = new Date(String(req.params.data_fim));
 
             if (dep_id === 0) {
-                 const error = new Error('Deposito inválido') as any;
+                const error = new Error('Deposito inválido') as any;
                 error.statusCode = 400;
                 throw error;
             }
@@ -461,6 +557,7 @@ export default class Controller_Entradas {
             await db.Commit();
 
             resdata.msg = 'Entrada aprovada com sucesso';
+            
 
         } catch (error) {
             await db.Rollback();
@@ -521,4 +618,3 @@ export default class Controller_Entradas {
         return res.status(resdata.status).json(resdata);
     }   
 }
-
