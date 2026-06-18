@@ -4,6 +4,7 @@ import Controller_TiposMedicamentos from '../controllers/controller_tipos_medica
 const router = Router();
 
 router.get('/listar/:pesq', Controller_TiposMedicamentos.Listar);
+router.get('/listar-ativos/:pesq', Controller_TiposMedicamentos.ListarAtivos);
 router.get('/buscar/:tipo_id', Controller_TiposMedicamentos.Buscar);
 router.get('/buscar-codigo/:tipo_codigo', Controller_TiposMedicamentos.BuscarPorCodigo);
 router.post('/salvar', Controller_TiposMedicamentos.Salvar);

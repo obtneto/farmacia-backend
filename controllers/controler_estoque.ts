@@ -2,6 +2,8 @@ import Database, {iDatabase} from "../connections/dbconn.js";
 import { Request, Response } from "express";
 import { applyControllerError } from "../utils/controllerError.js";
 import { iresdata } from "./interface_controllers.js";
+import Movimentacoes from "../model/dao_movimentacoes.js";
+import Depositos from "../model/dao_depositos.js";
 import Estoque from "../model/dao_estoque.js";
 
 // Expoe consultas e ajustes de estoque controlados por deposito, medicamento e lote.
@@ -198,6 +200,7 @@ export default class Controller_Estoque {
             
             const est_dep_id_origem = Number(req.body.est_dep_id_origem) || 0;
             const est_dep_id_destino = Number(req.body.est_dep_id_destino) || 0;
+            const user = String(req.body.user || null);
             const list_itens = req.body.list_itens || [];
             
             if (est_dep_id_origem === 0) {
@@ -217,6 +220,17 @@ export default class Controller_Estoque {
                 error.statusCode = 400;
                 throw error;
             }
+
+            if (!user) {
+                const error = new Error("Usuario não informado.") as any;
+                error.statusCode = 400;
+                throw error;
+            }
+
+            const estoqueOrigem = new Estoque(db.connection);
+            const estoqueDestino = new Estoque(db.connection);
+            const movimentacoes = new Movimentacoes(db.connection);
+            const depositos = new Depositos(db.connection);
 
             for (const item of list_itens) {
 
@@ -242,9 +256,18 @@ export default class Controller_Estoque {
                     throw error;
                 }
 
-                const estoqueOrigem = new Estoque(db.connection);
-
+               
+                /* ************************************************************************ */
                 await estoqueOrigem.BuscarPorItemEstoque(est_dep_id_origem, med_id, lote);
+                await depositos.BuscarPorId(est_dep_id_origem);
+
+                if (!depositos.found) {
+                    const error = new Error(`Deposito origem não encontrado.`) as any;
+                    error.statusCode = 404;
+                    throw error;
+                }
+
+                const deposito_origem = depositos.dep_descr;
 
                 if (!estoqueOrigem.found) {
                     const error = new Error(`Item não encontrado no estoque de origem para med_id ${med_id}, lote ${lote}`) as any;
@@ -263,9 +286,16 @@ export default class Controller_Estoque {
                 await estoqueOrigem.Salvar();
 
                 // Verificar se já existe um estoque para o mesmo medicamento, lote e departamento de destino
-                const estoqueDestino = new Estoque(db.connection);
-
                 await estoqueDestino.BuscarPorItemEstoque(est_dep_id_destino, med_id, lote);
+                await depositos.BuscarPorId(est_dep_id_destino);
+
+                if (!depositos.found) {
+                    const error = new Error(`Deposito Destino não encontrado.`) as any;
+                    error.statusCode = 404;
+                    throw error;
+                }
+
+                const deposito_destino = depositos.dep_descr;
 
                 if (estoqueDestino.found) {
                     // Se existir, atualizar o saldo disponível
@@ -282,11 +312,26 @@ export default class Controller_Estoque {
                 }
 
                 await estoqueDestino.Salvar();
+
+                await movimentacoes.BuscarPorId(0)
+
+                movimentacoes.mov_date = new Date();
+                movimentacoes.mov_descr = `Transferencia entre Deposito : ${deposito_origem} para ${deposito_destino}`
+                movimentacoes.mov_documento = null;
+                movimentacoes.mov_med_id = med_id;
+                movimentacoes.mov_med_lote = lote;
+                movimentacoes.mov_qtde = quantidade;
+                movimentacoes.mov_tipo = 'TRA'
+                movimentacoes.mov_user = user;
+
+                await movimentacoes.Salvar();
+
             }
 
             void await db.Commit();
 
             resdata.msg = "Transferência realizada com sucesso";
+            resdata.data.numero_transacao = movimentacoes.mov_id.toString().padStart(6,'0');
             
         } catch (error :any) {
 

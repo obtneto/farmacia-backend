@@ -1,6 +1,5 @@
 import {Connection,RowDataPacket} from 'mysql2/promise';
 import BaseModel, { iBaseModel } from './BaseModel.js';
-import { string } from 'zod';
 
 export interface iMovimentacoesFields {
     mov_id : number,
@@ -46,20 +45,20 @@ export default class Movimentacoes extends BaseModel implements iMovimentacoesFi
     set mov_date(date: Date | null) { this._fields.mov_date = date;}
     get mov_date(): Date | null {return this._fields.mov_date;}
 
-    set mov_tipo(tipo: string | null) { this._fields.mov_tipo = tipo;}  
+    set mov_tipo(tipo: string | null) { this._fields.mov_tipo = tipo;}
     get mov_tipo(): string | null {return this._fields.mov_tipo;}
 
     set mov_descr(descr: string | null) { this._fields.mov_descr = descr;}
     get mov_descr(): string | null {return this._fields.mov_descr;}
 
-    set mov_qtde(qtde: number | null) { this._fields.mov_qtde = qtde;}      
+    set mov_qtde(qtde: number | null) { this._fields.mov_qtde = qtde;}
     get mov_qtde(): number | null {return this._fields.mov_qtde;}
 
-    set mov_med_id(med_id: number | null) { this._fields.mov_med_id = med_id;}
-    get mov_med_id(): number | null {return this._fields.mov_med_id;}
+    set mov_med_id(med_id: number | null) { this._fields.mov_med_id = med_id}
+    get mov_med_id(): number | null {return this._fields.mov_med_id}
 
     set mov_med_lote(med_lote: string | null) {this._fields.mov_med_lote = med_lote}
-    get mov_med_lote():  string | null {return this._fields.mov_med_lote}
+    get mov_med_lote(): string | null {return this._fields.mov_med_lote}
 
     set mov_documento(mov_documento: string | null) {this._fields.mov_documento = mov_documento}
     get mov_documento(): string | null {return this._fields.mov_documento}
@@ -67,18 +66,20 @@ export default class Movimentacoes extends BaseModel implements iMovimentacoesFi
     set mov_user(mov_user: string | null) {this._fields.mov_user = mov_user}
     get mov_user(): string | null { return this._fields.mov_user}
 
-    public async Listar(pesq: string,data_ini: Date,data_fim: Date,tipo_med: string) : Promise<RowDataPacket[]>{
+    public async Listar(pesq: string,data_ini: string,data_fim: string,tipo_med: string) : Promise<RowDataPacket[]>{
 
-        let query: string = `SELECT mv.*, med_nome FROM tb_movimentacoes mv
-                             LEFT JOIN tb_medicamentos md ON mv.mov_med_id = md.med_id AND (mv.mov_descr LIKE :pesq OR md.med_nome LIKE :pesq)
-                             WHERE mv.mov_date >= :data_ini AND mv.mov_date <= :data_fim AND md.med_tipo LIKE :tipo_med
-                             ORDER BY mv.mov_id,md.med_id,mv.mov_med_lote`;
- 
-        if (pesq !== '*') {
-            query += " WHERE md.med_nome LIKE :pesq";
+        let query: string = `SELECT mv.*, md.med_descr
+                             FROM tb_movimentacoes mv
+                             LEFT JOIN tb_medicamentos md ON mv.mov_med_id = md.med_id
+                             WHERE mv.mov_date >= :data_ini AND mv.mov_date <= :data_fim AND md.med_tipo_codigo = :tipo_med
+                            `;
+
+        if(pesq !== '*') {
+            query += ` AND md.med_descr LIKE :pesq OR mv.mov_med_lote LIKE :pesq  
+                        ORDER BY mv.mov_id,md.med_id,mv.mov_med_lote`;
         }
 
-        const [rows] = await this.ExecuteQuery(query, {pesq: `%${pesq}%`, data_ini, data_fim, tipo_med}) as RowDataPacket[];
+        const [rows] = await this.ExecuteQuery(query, {pesq: `%${pesq}%`, data_ini, data_fim, tipo_med}) as [RowDataPacket[]];
 
         return rows as RowDataPacket[];
 
@@ -86,12 +87,16 @@ export default class Movimentacoes extends BaseModel implements iMovimentacoesFi
 
     public async ListarPorMedicamento(med_id: number) : Promise<RowDataPacket[]>{
 
-        let query: string = "SELECT * FROM tb_movimentacoes WHERE mov_med_id = :med_id";
+        let query: string = `SELECT mv.*, md.med_descr
+                             FROM tb_movimentacoes mv
+                             LEFT JOIN tb_medicamentos md ON 
+                             mv.mov_med_id = md.med_id AND (mv.mov_descr LIKE :pesq OR md.med_descr LIKE :pesq)
+                             WHERE mv.mov_med_id = :med_id
+                             ORDER BY mv.mov_id,md.med_id,mv.mov_med_lote`;
 
-        const [rows] = await this.ExecuteQuery(query, {med_id}) as RowDataPacket[];
+        const [rows] = await this.ExecuteQuery(query, {med_id}) as [RowDataPacket[]];
 
         return rows as RowDataPacket[];
 
     }
-
 }
