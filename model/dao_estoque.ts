@@ -59,7 +59,7 @@ export default class Estoque extends BaseModel implements iEstoqueFields, iBaseM
 
   async ListarAtivos(pesq: string = '', dep_id: number, med_tipo_codigo: string): Promise<RowDataPacket[]> {
     
-    let query = `SELECT
+      let query = `SELECT
       m.med_id AS id,
       m.med_descr AS descricao,
       m.med_descr_coml AS descricao_comercial,
@@ -93,7 +93,9 @@ export default class Estoque extends BaseModel implements iEstoqueFields, iBaseM
   }
 
   async BuscarPorItemEstoque(dep_id: number, med_id: number, lote: string): Promise<RowDataPacket> {
+    
     const query = `SELECT * FROM tb_estoque WHERE est_dep_id = :dep_id AND est_med_id = :med_id AND est_lote = :lote`
+    
     const [rows] = await this.connection.query(query, { dep_id, med_id, lote }) as [RowDataPacket[], unknown]
 
     if (rows && rows.length > 0) {
