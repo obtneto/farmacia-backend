@@ -17,7 +17,6 @@ import routes_demandas_especificas from './routes/routes_demandas_especificas.js
 import routes_estoque from './routes/routes_estoque.js';
 import router_movimentacoes from './routes/routes_movimentacoes.js';
 import router_pacientes from './routes/routes_pacientes.js';
-import routes_opcoes from './routes/routes_opcoes.js';
 import morgan from 'morgan';
 import helmet from 'helmet';
 
@@ -118,7 +117,6 @@ app.use('/demandas-especificas', routes_demandas_especificas);
 app.use('/estoque', routes_estoque);
 app.use('/movimentacoes',router_movimentacoes);
 app.use('/pacientes',router_pacientes);
-app.use('/sistema',routes_opcoes);
 app.use(globalErrorHandler);
 
 app.listen(port, () => {
