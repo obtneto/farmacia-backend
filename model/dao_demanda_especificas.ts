@@ -2,12 +2,12 @@ import { Connection, RowDataPacket } from "mysql2/promise";
 import BaseModel,{iBaseModel} from "./BaseModel.js";
 
 export interface iDemandasEspecificasFields {
-    dem_id : number,
-    dem_pac_id : number | null,
-    dem_medico_assis : string | null,
-    dem_medico_crm : string | null,
+    dem_id: number,
+    dem_pac_id: number | null,
+    dem_medico_assis: string | null,
+    dem_medico_crm: string | null,
     dem_responsavel: string | null,
-    dem_ativo : 0 | 1 | null,
+    dem_diag_id: number | null,
 }
 
 export default class DemandasEspecificas extends BaseModel implements iBaseModel,iDemandasEspecificasFields {
@@ -26,7 +26,7 @@ export default class DemandasEspecificas extends BaseModel implements iBaseModel
             dem_medico_assis: null,
             dem_medico_crm: null,
             dem_responsavel: null,
-            dem_ativo: null,
+            dem_diag_id: null,
         }
         
         super(connection, 'tb_demandas_especificas', initialFields, 'dem_id');
@@ -50,26 +50,16 @@ export default class DemandasEspecificas extends BaseModel implements iBaseModel
 
     set dem_responsavel(resposavel: string | null) {this._fields.dem_responsavel = resposavel}
     get dem_responsavel() {return this._fields.dem_responsavel}
-    
-    set dem_ativo(ativo: 0 | 1 | null) {this._fields.dem_ativo = ativo;}
-    get dem_ativo(): 0 | 1 | null {return this._fields.dem_ativo;}
+
+    set dem_diag_id(diag_id: number | null) {this._fields.dem_diag_id = diag_id}
+    get dem_diag_id() {return this._fields.dem_diag_id}
     
     async ListarDemandas() {
 
-        const query = `SELECT d.*, p.nom_paciente as nome_paciente, p.dt_nascimento as data_nascimento
-                       FROM tb_demandas_especificas d 
-                       LEFT JOIN fsph_ambulatorio.tb_pacientes p ON d.dem_pac_id = p.num_paciente`;
-        
-        const [rows] = await this.connection.query(query) as RowDataPacket[];
-        return rows;
-    }
-
-    async ListarDemandasAtivos() {
-
-        const query = `SELECT d.dem_id, p.nom_paciente as nome_paciente
+        const query = `SELECT d.*, p.nom_paciente as nome_paciente, p.dt_nascimento as data_nascimento,dg.diag_descr as diagnostico
                        FROM tb_demandas_especificas d 
                        LEFT JOIN fsph_ambulatorio.tb_pacientes p ON d.dem_pac_id = p.num_paciente
-                       WHERE d.dem_ativo = 1`;
+                       LEFT JOIN tb_diagnosticos dg ON dg.diag_id = d.dem_diag_id`;
         
         const [rows] = await this.connection.query(query) as RowDataPacket[];
         return rows;
@@ -77,9 +67,10 @@ export default class DemandasEspecificas extends BaseModel implements iBaseModel
 
     async BuscarPorPaciente(pac_id: number) {
 
-        const query = `SELECT d.*, p.nom_paciente as nome_paciente, p.dt_nascimento as data_nascimento
+        const query = `SELECT d.*, p.nom_paciente as nome_paciente, p.dt_nascimento as data_nascimento,dg.diag_descr as diagnostico
                        FROM tb_demandas_especificas d 
                        LEFT JOIN fsph_ambulatorio.tb_pacientes p ON d.dem_pac_id = p.num_paciente
+                       LEFT JOIN tb_diagnosticos dg ON dg.diag_id = d.dem_diag_id
                        WHERE dem_pac_id = :pac_id`;
         
         const [rows] = await this.connection.query(query, { pac_id })  as RowDataPacket[];
@@ -92,17 +83,16 @@ export default class DemandasEspecificas extends BaseModel implements iBaseModel
             
         } else {
             
-            this._found = false
+            this._found = false;
             
             this.populateFromInitial({
-                est_id: 0,
-                est_dep_id: null,
-                est_med_id: null,
-                est_lote: null,
-                est_saldo_disponivel: 0,
-                est_saldo_bloqueado: 0,
-                est_validade: null,
-            })
+                dem_id: 0,
+                dem_pac_id: null,
+                dem_medico_assis: null,
+                dem_medico_crm: null,
+                dem_responsavel: null,
+                dem_diag_id: null,
+            });
         }
 
         return this._fields as RowDataPacket
