@@ -10,7 +10,7 @@ export interface iItensDemandasEspecificasFields {
     ite_dem_med_ativo: number | null,
 }
 
-export default class DemandasEspecificas extends BaseModel implements iItensDemandasEspecificasFields, iBaseModel{
+export default class ItensDemandasEspecificas extends BaseModel implements iItensDemandasEspecificasFields, iBaseModel{
 
     constructor(connection : Connection) {
 
