@@ -6,9 +6,7 @@ export interface iDemandasEspecificasFields {
     dem_pac_id : number | null,
     dem_medico_assis : string | null,
     dem_medico_crm : string | null,
-    dem_med_id : number | null,    
-    dem_qtde_medicamento: number,
-    dem_qtde_doses: number,
+    dem_responsavel: string | null,
     dem_ativo : 0 | 1 | null,
 }
 
@@ -27,9 +25,7 @@ export default class DemandasEspecificas extends BaseModel implements iBaseModel
             dem_pac_id: null,
             dem_medico_assis: null,
             dem_medico_crm: null,
-            dem_med_id: null,
-            dem_qtde_medicamento: 0,
-            dem_qtde_doses: 0,
+            dem_responsavel: null,
             dem_ativo: null,
         }
         
@@ -51,27 +47,18 @@ export default class DemandasEspecificas extends BaseModel implements iBaseModel
     
     set dem_medico_crm(medico_crm: string | null) {this._fields.dem_medico_crm = medico_crm;}
     get dem_medico_crm(): string | null {return this._fields.dem_medico_crm;}
-    
-    set dem_med_id(med_id: number | null) {this._fields.dem_med_id = med_id;}
-    get dem_med_id(): number | null {return this._fields.dem_med_id;}
-    
-    set dem_qtde_medicamento(qtde_medicamento: number) {this._fields.dem_qtde_medicamento = qtde_medicamento;}
-    get dem_qtde_medicamento(): number {return this._fields.dem_qtde_medicamento;}
 
-    set dem_qtde_doses(qtde_doses: number) {this._fields.dem_qtde_doses = qtde_doses;}
-    get dem_qtde_doses(): number {return this._fields.dem_qtde_doses;}
+    set dem_responsavel(resposavel: string | null) {this._fields.dem_responsavel = resposavel}
+    get dem_responsavel() {return this._fields.dem_responsavel}
     
     set dem_ativo(ativo: 0 | 1 | null) {this._fields.dem_ativo = ativo;}
     get dem_ativo(): 0 | 1 | null {return this._fields.dem_ativo;}
     
     async ListarDemandas() {
 
-        const query = `SELECT d.dem_id as id, d.dem_pac_id as num_pacientes, p.nom_paciente as nome_paciente, p.dt_nascimento as data_nascimento,
-                       d.dem_medico_assis as medico_assistente, d.dem_medico_crm as medico_crm, m.med_descr as medicamento, 
-                       d.dem_qtde_medicamento as qtde_medicamento, d.dem_qtde_doses as qtde_doses, d.dem_ativo as ativo 
+        const query = `SELECT d.*, p.nom_paciente as nome_paciente, p.dt_nascimento as data_nascimento
                        FROM tb_demandas_especificas d 
-                       LEFT JOIN fsph_ambulatorio.tb_pacientes p ON d.dem_pac_id = p.num_paciente
-                       LEFT JOIN tb_medicamentos m ON d.dem_med_id = m.med_id`;
+                       LEFT JOIN fsph_ambulatorio.tb_pacientes p ON d.dem_pac_id = p.num_paciente`;
         
         const [rows] = await this.connection.query(query) as RowDataPacket[];
         return rows;
@@ -79,7 +66,7 @@ export default class DemandasEspecificas extends BaseModel implements iBaseModel
 
     async ListarDemandasAtivos() {
 
-        const query = `SELECT d.dem_id as id, p.nom_paciente as nome_paciente
+        const query = `SELECT d.dem_id, p.nom_paciente as nome_paciente
                        FROM tb_demandas_especificas d 
                        LEFT JOIN fsph_ambulatorio.tb_pacientes p ON d.dem_pac_id = p.num_paciente
                        WHERE d.dem_ativo = 1`;
@@ -90,27 +77,35 @@ export default class DemandasEspecificas extends BaseModel implements iBaseModel
 
     async BuscarPorPaciente(pac_id: number) {
 
-        const query = `SELECT * FROM tb_demandas_especificas WHERE dem_pac_id = :pac_id`;
+        const query = `SELECT d.*, p.nom_paciente as nome_paciente, p.dt_nascimento as data_nascimento
+                       FROM tb_demandas_especificas d 
+                       LEFT JOIN fsph_ambulatorio.tb_pacientes p ON d.dem_pac_id = p.num_paciente
+                       WHERE dem_pac_id = :pac_id`;
         
         const [rows] = await this.connection.query(query, { pac_id })  as RowDataPacket[];
-        
-        if (rows && rows.length > 0) {
+
+        if (rows[0] && rows.length > 0) {
+
             this.populateFromRow(rows[0]);
+
             this._found = true;
+            
         } else {
-            this._found = false;
+            
+            this._found = false
+            
             this.populateFromInitial({
-                dem_id: 0,
-                dem_pac_id: pac_id,
-                dem_medico_assis: null,
-                dem_medico_crm: null,
-                dem_med_id: null,
-                dem_qtde_medicamento: null,
-                dem_qtde_doses: null,
-                dem_ativo: null,
-            });
+                est_id: 0,
+                est_dep_id: null,
+                est_med_id: null,
+                est_lote: null,
+                est_saldo_disponivel: 0,
+                est_saldo_bloqueado: 0,
+                est_validade: null,
+            })
         }
 
-        return this._fields;
+        return this._fields as RowDataPacket
+
     }
 }

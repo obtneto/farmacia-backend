@@ -5,6 +5,7 @@ const router = Router();
 
 router.get('/buscar/:id_demanda',Controller_DemandasEspecificas.Buscar);
 router.get('/listar/:pesq',Controller_DemandasEspecificas.Listar);
+router.get('/listar-ativos/:pesq',Controller_DemandasEspecificas.ListarDemandasAtivos);
 router.post('/salvar',Controller_DemandasEspecificas.Salvar);
 router.delete('/excluir/:demanda_id',Controller_DemandasEspecificas.Excluir);
 

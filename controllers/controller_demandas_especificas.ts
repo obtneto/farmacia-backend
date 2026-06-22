@@ -3,12 +3,14 @@ import DemandasEspecificas, {iDemandasEspecificasFields}  from '../model/dao_dem
 import { Request, Response } from 'express';
 import { iresdata } from './interface_controllers.js';
 import { applyControllerError } from "../utils/controllerError.js";
+import { RowDataPacket } from 'mysql2';
 
 export default class Controller_DemandasEspecificas {
 
     static async Buscar(req: Request, res: Response) {
 
         const db : iDatabase = new Database();
+
         const resdata :iresdata = {
             err: 0,
             msg: '',
@@ -30,7 +32,8 @@ export default class Controller_DemandasEspecificas {
             }
 
             const demandasEspecificas = new DemandasEspecificas(db.connection);
-            const dados = await demandasEspecificas.BuscarPorId(demanda_id) as iDemandasEspecificasFields;
+            
+            const dados = await demandasEspecificas.BuscarPorId(demanda_id) as RowDataPacket;
 
             if (!demandasEspecificas.found) {
                 const error = new Error('Demanda Específica não encontrada');
@@ -38,7 +41,13 @@ export default class Controller_DemandasEspecificas {
                 throw error;
             }
 
+            const result = await demandasEspecificas.BuscarPorPaciente(dados.dem_pac_id) as RowDataPacket
+
+            dados.nome_paciente = result.nome_paciente;
+            dados.data_nascimento = result.data_nascimento;
+            
             resdata.data = dados;
+            
 
         } catch (error :any) {
             applyControllerError(resdata, error, 'Controller Demandas Específicas');
@@ -66,7 +75,7 @@ export default class Controller_DemandasEspecificas {
             void await db.Connect();
 
             const demandasEspecificas = new DemandasEspecificas(db.connection);
-            const dados = await demandasEspecificas.ListarDemandas() as iDemandasEspecificasFields[];
+            const dados = await demandasEspecificas.ListarDemandas();
 
             resdata.data = dados;
 
@@ -96,7 +105,7 @@ export default class Controller_DemandasEspecificas {
             void await db.Connect();
 
             const demandasEspecificas = new DemandasEspecificas(db.connection);
-            const dados = await demandasEspecificas.ListarDemandasAtivos() as iDemandasEspecificasFields[];
+            const dados = await demandasEspecificas.ListarDemandasAtivos();
 
             resdata.data = dados;
 
@@ -148,7 +157,7 @@ export default class Controller_DemandasEspecificas {
     
     }
     
-    static async Salvar(req: Request, res: Response) {
+    static async Salvar(req: Request, res: Response) {  //rever esse metodo....
 
          const db : iDatabase = new Database();
 
@@ -163,15 +172,9 @@ export default class Controller_DemandasEspecificas {
 
             void await db.Connect();
 
-            const demandaData = req.body as iDemandasEspecificasFields;
+            const demandaData = req.body as iDemandasEspecificasFields; //tirar isso ...
 
             const demandasEspecificas = new DemandasEspecificas(db.connection);
-
-            if(demandaData.dem_med_id === 0 || demandaData.dem_med_id === undefined) {
-                const error = new Error('ID do médico não informado');
-                error.statusCode = 400;
-                throw error;
-            }
 
             if (demandaData.dem_pac_id === 0 || demandaData.dem_pac_id === undefined) {
                 const error = new Error('ID do paciente não informado');
@@ -191,19 +194,7 @@ export default class Controller_DemandasEspecificas {
                 throw error;
             }
 
-             if (demandaData.dem_qtde_medicamento === 0 || demandaData.dem_qtde_medicamento === undefined) {
-                const error = new Error('Quantidade de medicamento não informada');
-                error.statusCode = 400;
-                throw error;
-            }
-
-             if (demandaData.dem_qtde_doses === 0 || demandaData.dem_qtde_doses === undefined) {
-                const error = new Error('Quantidade de doses não informada');
-                error.statusCode = 400;
-                throw error;
-            }
-
-             if (demandaData.dem_ativo === undefined) {
+            if (demandaData.dem_ativo === undefined) {
                 const error = new Error('Status ativo da demanda não informado');
                 error.statusCode = 400;
                 throw error;
@@ -214,9 +205,6 @@ export default class Controller_DemandasEspecificas {
             demandasEspecificas.dem_pac_id = demandaData.dem_pac_id;
             demandasEspecificas.dem_medico_assis = demandaData.dem_medico_assis;
             demandasEspecificas.dem_medico_crm = demandaData.dem_medico_crm;
-            demandasEspecificas.dem_med_id = demandaData.dem_med_id;
-            demandasEspecificas.dem_qtde_medicamento = demandaData.dem_qtde_medicamento;
-            demandasEspecificas.dem_qtde_doses = demandaData.dem_qtde_doses;
             demandasEspecificas.dem_ativo = demandaData.dem_ativo;
 
             await demandasEspecificas.Salvar();
