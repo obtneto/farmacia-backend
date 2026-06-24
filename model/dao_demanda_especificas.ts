@@ -62,6 +62,7 @@ export default class DemandasEspecificas extends BaseModel implements iBaseModel
                        LEFT JOIN tb_diagnosticos dg ON dg.diag_id = d.dem_diag_id`;
         
         const [rows] = await this.connection.query(query) as RowDataPacket[];
+        
         return rows;
     }
 
