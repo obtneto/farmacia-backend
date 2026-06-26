@@ -100,14 +100,15 @@ export default class DemandasEspecificas extends BaseModel implements iBaseModel
 
     }
 
-    async ListarItensDemandas(ite_dem_id: number): Promise<RowDataPacket[]>  {
+    async ListarItensDemandas(dem_pac_id: number): Promise<RowDataPacket[]>  {
 
         const query = `SELECT ite_id,ite_dem_med_id,med_descr,med_descr_coml,ite_dem_med_qtde 
                        FROM tb_itens_demandas_especificas
+                       LEFT JOIN tb_demandas_especificas ON dem_id = ite_dem_id
                        LEFT JOIN tb_medicamentos ON med_id = ite_dem_med_id
-                       WHERE ite_dem_id = :ite_dem_id`;
+                       WHERE dem_pac_id = :dem_pac_id`;
         
-        const [rows] = await this.connection.query<RowDataPacket[]>(query,{ite_dem_id});
+        const [rows] = await this.connection.query<RowDataPacket[]>(query,{dem_pac_id});
 
         return rows;
     }

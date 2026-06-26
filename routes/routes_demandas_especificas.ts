@@ -4,8 +4,8 @@ import Controller_DemandasEspecificas from '../controllers/controller_demandas_e
 const router = Router();
 
 router.get('/buscar/:id_demanda',Controller_DemandasEspecificas.Buscar);
-router.get('/listar/:pesq',Controller_DemandasEspecificas.Listar);
-router.get('/listar-itens-demandas/:dem_id',Controller_DemandasEspecificas.ListarItensDemandas);
+router.get('/listar/',Controller_DemandasEspecificas.Listar);
+router.get('/listar-itens-demandas/:dem_pac_id',Controller_DemandasEspecificas.ListarItensDemandas);
 router.post('/salvar',Controller_DemandasEspecificas.Salvar);
 router.delete('/excluir/:demanda_id',Controller_DemandasEspecificas.Excluir);
 
