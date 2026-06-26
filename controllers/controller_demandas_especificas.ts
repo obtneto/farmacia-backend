@@ -222,7 +222,6 @@ export default class Controller_DemandasEspecificas {
 
                 itens_demandas.ite_dem_id = dem_id;
                 itens_demandas.ite_dem_med_id = dem_med_id;
-                itens_demandas.ite_dem_med_lote = dem_med_lote.toUpperCase();
                 itens_demandas.ite_dem_med_qtde = dem_med_qtde
                 itens_demandas.ite_dem_med_ativo = itens_demandas.found ? itens_demandas.ite_dem_med_ativo : 1;
 
@@ -279,6 +278,44 @@ export default class Controller_DemandasEspecificas {
 
         res.status(resdata.status).json(resdata);
 
-    }   
+    } 
+    
+    static async ListarItensDemandas(req: Request, res: Response) {
+
+        const db : iDatabase = new Database();
+
+        const resdata :iresdata = {
+            err: 0,
+            msg: '',
+            status: 200,
+            data: []
+        };
+
+        try {
+
+            void await db.Connect();
+
+            const dem_id: number = Number(req.params.dem_id || 0);
+
+            if (dem_id === 0) {
+                const error = new Error('ID invalido.');
+                error.statusCode = 400;
+                throw error;
+            }
+
+            const demandasEspecificas = new DemandasEspecificas(db.connection);
+            const dados = await demandasEspecificas.ListarItensDemandas(dem_id)
+
+            resdata.data = dados;
+
+        } catch (error :any) {
+            applyControllerError(resdata, error, 'Controller Demandas Específicas');
+        }
+
+        void await db.Disconnect();
+
+        res.status(resdata.status).json(resdata);
+    
+    }
 
 }

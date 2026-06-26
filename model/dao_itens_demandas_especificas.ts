@@ -46,19 +46,6 @@ export default class ItensDemandasEspecificas extends BaseModel implements iIten
     set ite_dem_med_ativo(dem_med_ativo: number | null) {this._fields.ite_dem_med_ativo = dem_med_ativo}
     get ite_dem_med_ativo(): number | null { return this._fields.ite_dem_med_ativo}
 
-    public async Listar(dem_id: number) : Promise<RowDataPacket[]> {
-
-        const query: string = `SELECT i.*,m.med_descr,m.med_descr_coml 
-                               FROM tb_itens_demandas_especificas i
-                               LEFT JOIN tb_medicamentos m ON m.med_id = i.ite_dem_med_id
-                               WHERE i.ite_dem_id = :dem_id`;
-
-        const [rows] = await this.ExecuteQuery(query, {dem_id}) as RowDataPacket[];
-
-        return rows as RowDataPacket[];
-
-    }
-
     public async ListarAtivos(dem_id: number) : Promise<RowDataPacket[]>{
 
         const query: string = `SELECT i.*,m.med_descr,m.med_descr_coml 
@@ -72,6 +59,4 @@ export default class ItensDemandasEspecificas extends BaseModel implements iIten
 
     }
 
-
 }
-
