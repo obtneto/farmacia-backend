@@ -151,8 +151,6 @@ export default class Controller_DemandasEspecificas {
             const dem_responsavel: string = String(req.body.dem_responsavel || '').trim();
             const dem_diag_id: number = Number(req.body.dem_diag_id || 0);
 
-            const itens = Array.isArray(req.body.itens) ? req.body.itens : null
-
             if (dem_pac_id === 0) {
                 const error = new Error('ID do paciente não informado');
                 error.statusCode = 400;
@@ -177,12 +175,6 @@ export default class Controller_DemandasEspecificas {
                 throw error;
             }
 
-            if (!itens || itens.length === 0) {
-                const error = new Error('Adicione pelo menos um item à entrada.');
-                error.statusCode = 400;
-                throw error;
-            }
-
             const demandasEspecificas = new DemandasEspecificas(db.connection);
             const itens_demandas = new ItensDemandasEspecificas(db.connection);
 
@@ -196,42 +188,40 @@ export default class Controller_DemandasEspecificas {
 
             await demandasEspecificas.Salvar();
 
-            const savedDemandaId = Number(demandasEspecificas.dem_id || 0);
+            // const savedDemandaId = Number(demandasEspecificas.dem_id || 0);
 
-            for (const item of itens) {
+            // for (const item of itens) {
 
-                const dem_med_id = Number(item.dem_med_id || 0);
-                const dem_med_qtde = Number(item.dem_med_qtde || 0);
+            //     const dem_med_id = Number(item.dem_med_id || 0);
+            //     const dem_med_qtde = Number(item.dem_med_qtde || 0);
 
-                if (dem_med_id === 0) {
-                    const error = new Error('ID do medicamento obrigatorio.');
-                    error.statusCode = 400;
-                    throw error;
-                }
+            //     if (dem_med_id === 0) {
+            //         const error = new Error('ID do medicamento obrigatorio.');
+            //         error.statusCode = 400;
+            //         throw error;
+            //     }
 
-                if (dem_med_qtde <= 0) {
-                     const error = new Error('quantidade do medicamento deve ser maior que ZERO.');
-                    error.statusCode = 400;
-                    throw error;
-                } 
+            //     if (dem_med_qtde <= 0) {
+            //          const error = new Error('quantidade do medicamento deve ser maior que ZERO.');
+            //         error.statusCode = 400;
+            //         throw error;
+            //     } 
 
-                await itens_demandas.BuscarPorId(item.ite_id);
+            //     await itens_demandas.BuscarPorId(item.ite_id);
 
-                itens_demandas.ite_dem_id = savedDemandaId;
-                itens_demandas.ite_dem_med_id = dem_med_id;
-                itens_demandas.ite_dem_med_qtde = dem_med_qtde
-                itens_demandas.ite_dem_med_ativo = itens_demandas.found ? itens_demandas.ite_dem_med_ativo : 1;
+            //     itens_demandas.ite_dem_id = savedDemandaId;
+            //     itens_demandas.ite_dem_med_id = dem_med_id;
+            //     itens_demandas.ite_dem_med_qtde = dem_med_qtde
+            //     itens_demandas.ite_dem_med_ativo = itens_demandas.found ? itens_demandas.ite_dem_med_ativo : 1;
 
-                await itens_demandas.Salvar()
+            //     await itens_demandas.Salvar()
 
-            }
+            // }
 
             await db.Commit();
 
             resdata.msg = "Dados Salvo com Sucesso."
-            resdata.data = {
-                dem_id: savedDemandaId
-            }
+            resdata.data = {dem_id}
            
 
         } catch (error :any) {

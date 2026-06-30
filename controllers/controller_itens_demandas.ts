@@ -70,7 +70,7 @@ export default class Controller_Itens_Demandas {
 
                   const dem_id: number = Number(req.params.dem_id || 0);
 
-                   if (dem_id === 0) {
+                  if (dem_id === 0) {
                         const error = new Error('ID invalido.');
                         error.statusCode = 400;
                         throw error;
@@ -195,5 +195,46 @@ export default class Controller_Itens_Demandas {
 
             res.status(resdata.status).json(resdata);
 
+      }
+
+      static async AtivarDesativar(req: Request, res: Response) {
+
+            const db: iDatabase = new Database('fsph_farmacia');
+
+            const resdata: iresdata = {err: 0, msg: '', status: 200, data:[]};
+
+            try {
+
+                  await db.Connect();
+
+                  const ite_id: number = Number(req.params.ite_id || 0);
+
+                  if (ite_id === 0) {
+                        const error = new Error('ID do Item de Demanda não pode ser ZERO.');
+                        error.statusCode = 400;
+                        throw error;
+                  }
+
+                  const itens = new ItensDemandasEspecificas(db.connection);
+
+                  await itens.BuscarPorId(ite_id);
+
+                  if (!itens.found) {
+                        const error = new Error('ID do item de Demanda não encontrado.');
+                        error.statusCode = 404;
+                        throw error;
+                  }
+
+                  itens.ite_dem_med_ativo = itens.ite_dem_med_ativo === 1 ? 0 : 1; 
+                  await itens.Salvar();
+                  resdata.msg = 'Status do item atualizado com sucesso.';
+                  
+            } catch (error) {
+                  applyControllerError(resdata,error,'Controller_Itens_Damandas.AtivarDesativar');
+            }
+
+            await db.Disconnect();
+
+            res.status(resdata.status).json(resdata);
       }
 }
