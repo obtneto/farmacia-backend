@@ -7,6 +7,7 @@ export interface iEntradaFields {
     ent_date: Date | string | null,
     ent_doc: string | null,
     ent_for_id: number | null,
+    ent_pac_id: number | null,
     ent_status: number | null,
     ent_user_digit: string | null,
     ent_dt_digit: Date | string | null,
@@ -28,6 +29,7 @@ export default class Entradas extends BaseModel implements iEntradaFields, iBase
             ent_doc: null,
             ent_for_id: null,
             ent_dep_id: null,
+            ent_pac_id: null,
             ent_status: null,
             ent_user_digit: null,
             ent_dt_digit: null,
@@ -54,6 +56,9 @@ export default class Entradas extends BaseModel implements iEntradaFields, iBase
 
     set ent_for_id(ent_for_id: number | null) { this._fields.ent_for_id = ent_for_id; }
     get ent_for_id(): number | null { return this._fields.ent_for_id; }
+
+    set ent_pac_id(pac_id: number | null) {this._fields.ent_pac_id = pac_id}
+    get ent_pac_id(): number | null {return this._fields.ent_pac_id}
 
     set ent_status(ent_status: number | null) {this._fields.ent_status = ent_status}
     get ent_status(): number | null {return this._fields.ent_status}
@@ -86,6 +91,7 @@ export default class Entradas extends BaseModel implements iEntradaFields, iBase
                      FROM tb_entradas e
                      LEFT JOIN tb_fornecedores f ON f.for_id = e.ent_for_id
                      LEFT JOIN tb_depositos d ON d.dep_id = e.ent_dep_id
+                     LEFT JOIN fsph_ambulatorio.tb_paciente p ON p.num_paciente = e.ent_pac_id
                      WHERE e.ent_dep_id = :dep_id AND (e.ent_date >= :data_inicio
                        AND e.ent_date <= :data_fim) AND e.ent_status = 1`;
 
@@ -119,11 +125,13 @@ export default class Entradas extends BaseModel implements iEntradaFields, iBase
                         f.for_razao_social AS fornecedor,
                         e.ent_status AS status,
                         d.dep_descr AS deposito,
+                        p.nom_paciente AS paciente,
                         e.ent_user_digit AS user_digitacao,
                         e.ent_dt_digit AS dt_digitacao
                      FROM tb_entradas e
                      LEFT JOIN tb_fornecedores f ON f.for_id = e.ent_for_id
                      LEFT JOIN tb_depositos d ON d.dep_id = e.ent_dep_id
+                     LEFT JOIN fsph_ambulatorio.tb_pacientes p ON p.num_paciente = e.ent_pac_id 
                      WHERE e.ent_status = 0 AND e.ent_dep_id = :dep_id AND (e.ent_date >= :data_inicio
                        AND e.ent_date <= :data_fim) AND e.ent_status = 0`;
 
