@@ -112,4 +112,14 @@ export default class DemandasEspecificas extends BaseModel implements iBaseModel
 
         return rows;
     }
+
+    async ListarPacientes(): Promise<RowDataPacket[]>  {
+
+        const query = `SELECT d.dem_pac_id as num_paciente, p.nom_paciente FROM tb_demandas_especificas d 
+                       LEFT JOIN fsph_ambulatorio.tb_pacientes p ON d.dem_pac_id = p.num_paciente`;
+        
+        const [rows] = await this.connection.query<RowDataPacket[]>(query);
+
+        return rows;
+    }
 }

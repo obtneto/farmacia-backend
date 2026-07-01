@@ -336,6 +336,7 @@ export default class Controller_DemandasEspecificas {
             let ent_doc = String(req.body.ent_doc || '');
             const ent_doc_informado = ent_doc.trim().length > 0;
             const ent_pac_id = Number(req.body.ent_pac_id || 0);
+            const ent_for_id: number = Number(req.body.ent_for_id || 0);
             const ent_dep_id = Number(req.body.ent_dep_id || 0);
             const ent_user_digit = String(req.body.ent_user_digit || null);
             const itens = Array.isArray(req.body.itens) ? req.body.itens : null
@@ -343,6 +344,12 @@ export default class Controller_DemandasEspecificas {
             // Validar os dados recebidos do corpo da requisição
             if (ent_pac_id === 0) {
                 const error = new Error('Paciente não Informado.');
+                error.statusCode = 400;
+                throw error;
+            }
+
+            if(ent_for_id <= 0) {
+                const error = new Error('Fornecedor não informado.');
                 error.statusCode = 400;
                 throw error;
             }
@@ -389,6 +396,7 @@ export default class Controller_DemandasEspecificas {
             entradas.ent_doc = ent_doc;
             entradas.ent_dep_id = ent_dep_id;
             entradas.ent_pac_id = ent_pac_id;
+            entradas.ent_for_id = ent_for_id;
             entradas.ent_status = 0;
             entradas.ent_user_digit = ent_user_digit;
             entradas.ent_dt_digit = new Date();
@@ -498,4 +506,35 @@ export default class Controller_DemandasEspecificas {
         res.status(resdata.status).json(resdata);
 
     }
+
+    static async ListarPacientes(req: Request, res: Response) {
+
+        const db : iDatabase = new Database();
+
+        const resdata :iresdata = {
+            err: 0,
+            msg: '',
+            status: 200,
+            data: []
+        };
+
+        try {
+
+            void await db.Connect();
+
+            const demandasEspecificas = new DemandasEspecificas(db.connection);
+            const dados = await demandasEspecificas.ListarPacientes();
+
+            resdata.data = dados;
+            
+        } catch (error) {
+            applyControllerError(resdata, error, 'Controller Demandas Específicas.ListarPacientes');
+        }
+
+        void await db.Disconnect();
+
+        res.status(resdata.status).json(resdata);
+    
+    }
+        
 }
