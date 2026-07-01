@@ -1,4 +1,4 @@
-import express from 'express';
+import express, {Request,Response} from 'express';
 import cors from 'cors';
 import 'dotenv/config';
 import routes_locais from './routes/routes_locais.js';
@@ -98,6 +98,7 @@ app.use(cors({
 }));
 
 app.use('/auth', routes_auth);
+
 app.use(authMiddleware);
 
 /*****************************************************

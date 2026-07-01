@@ -8,5 +8,6 @@ router.get('/listar/',Controller_DemandasEspecificas.Listar);
 router.get('/listar-itens-demandas/:dem_pac_id',Controller_DemandasEspecificas.ListarItensDemandas);
 router.post('/salvar',Controller_DemandasEspecificas.Salvar);
 router.delete('/excluir/:demanda_id',Controller_DemandasEspecificas.Excluir);
+router.post('/salvar_entradas_demandas',Controller_DemandasEspecificas.SalvarEntradas);
 
 export default router;  
