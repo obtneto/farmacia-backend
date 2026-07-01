@@ -178,11 +178,12 @@ export default class Controller_Entradas {
             }
 
             if (!ent_doc) {
+
                 const anoAtual = new Date().getFullYear();
                 const mesAtual = (new Date().getMonth() + 1).toString().padStart(2,'0');
                 const numeroAleatorio = Math.floor(Math.random() * 11333).toString().padStart(4, '0');
                 
-                ent_doc = `${anoAtual}${mesAtual}${numeroAleatorio}`;
+                ent_doc = `${anoAtual}-${mesAtual}-${numeroAleatorio}`;
             }
 
             const entradas = new Entradas(db.connection);
