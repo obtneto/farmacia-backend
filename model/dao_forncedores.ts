@@ -119,8 +119,7 @@ export default class Fornecedores extends BaseModel implements iBaseModel, iForn
         let query = `
             SELECT
                 for_id,
-                for_razao_social,
-                for_nome_fantasia
+                CONCAT(for_razao_social, ' - ', for_nome_fantasia) as for_razao_social
             FROM tb_fornecedores
             WHERE for_ativo = 1
         `;

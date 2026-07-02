@@ -398,8 +398,8 @@ export default class Controller_Entradas {
 
             const pesq = String(req.params.pesq || '*');
             const dep_id = Number(req.params.dep_id || 0)
-            const data_inicio = new Date(String(req.params.data_inicio));
-            const data_fim = new Date(String(req.params.data_fim));
+            const data_inicio = req.params.data_inicio;
+            const data_fim = req.params.data_fim;
 
             if (dep_id === 0) {
                 const error = new Error('Deposito inválido') as any;
@@ -407,19 +407,19 @@ export default class Controller_Entradas {
                 throw error;
             }
 
-            if (Number.isNaN(data_inicio.getTime())) {
+            if (Number.isNaN(new Date(String(data_inicio)).getTime())) {
                 const error = new Error('Data de início inválida') as any;
                 error.statusCode = 400;
                 throw error;
             }
 
-            if (Number.isNaN(data_fim.getTime())) {
+            if (Number.isNaN(new Date(String(data_fim)).getTime())) {
                 const error = new Error('Data de fim inválida') as any;
                 error.statusCode = 400;
                 throw error
             }
 
-            if (data_inicio > data_fim) {
+            if (new Date(String(data_inicio)) > new Date(String(data_fim))) {
                 const error = new Error('Data de início deve ser menor que a data de fim')
                 error.statusCode =  400;
                 throw error;
@@ -427,7 +427,7 @@ export default class Controller_Entradas {
 
             const entradas = new Entradas(db.connection);
 
-            const result = await entradas.ListarEntradasNaoAprovados(pesq, data_inicio, data_fim, dep_id);
+            const result = await entradas.ListarEntradasNaoAprovados(pesq, String(data_inicio), String(data_fim), dep_id);
 
             resdata.data = result;
 

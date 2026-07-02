@@ -116,13 +116,13 @@ export default class Entradas extends BaseModel implements iEntradaFields, iBase
         return rows as RowDataPacket[];
     }
 
-    async ListarEntradasNaoAprovados(pesq: string, data_inicio: Date, data_fim: Date,dep_id:number): Promise<RowDataPacket[]> {
+    async ListarEntradasNaoAprovados(pesq: string, data_inicio: String, data_fim: String,dep_id:number): Promise<RowDataPacket[]> {
 
         let query = `SELECT
                         e.ent_id AS id,
                         e.ent_date AS data,
                         e.ent_doc AS documento,
-                        f.for_razao_social AS fornecedor,
+                        CONCAT(f.for_razao_social, ' - ', f.for_nome_fantasia) AS fornecedor,
                         e.ent_status AS status,
                         d.dep_descr AS deposito,
                         p.nom_paciente AS paciente,
@@ -133,17 +133,9 @@ export default class Entradas extends BaseModel implements iEntradaFields, iBase
                      LEFT JOIN tb_depositos d ON d.dep_id = e.ent_dep_id
                      LEFT JOIN fsph_ambulatorio.tb_pacientes p ON p.num_paciente = e.ent_pac_id 
                      WHERE e.ent_status = 0 AND e.ent_dep_id = :dep_id AND (e.ent_date >= :data_inicio
-                       AND e.ent_date <= :data_fim) AND e.ent_status = 0`;
-
-            if (pesq !== '*') {
-                query += ` AND (
-                    e.ent_doc LIKE :pesq
-                    OR f.for_razao_social LIKE :pesq
-                    OR e.ent_doc LIKE :pesq
-            )`};           
+                       AND e.ent_date <= :data_fim)`;          
 
         const [rows] = await this.ExecuteQuery(query, {
-            pesq: `%${pesq}%`,
             data_inicio,
             data_fim,
             dep_id
