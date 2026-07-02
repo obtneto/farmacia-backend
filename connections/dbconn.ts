@@ -29,10 +29,10 @@ export default class Database implements iDatabase {
 
 
         this.conn = await createConnection({
-            host: process.env.DB_HOST || '172.23.42.17',
+            host: process.env.DB_HOST,
             port: Number(process.env.DB_PORT || 3306),
-            user: process.env.DB_USER || 'apiuser',
-            password: process.env.DB_PASS || 'Abcd@1234!',
+            user: process.env.DB_USER,
+            password: process.env.DB_PASS,
             database: this.dbname,
             namedPlaceholders: true,
             decimalNumbers: true,
