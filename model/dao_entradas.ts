@@ -75,7 +75,7 @@ export default class Entradas extends BaseModel implements iEntradaFields, iBase
     set ent_dt_aprov(ent_dt_aprov: Date | string | null) { this._fields.ent_dt_aprov = ent_dt_aprov; }
     get ent_dt_aprov(): Date | string | null { return this._fields.ent_dt_aprov; }
 
-    async ListarPeriodo(pesq: string, data_inicio: Date, data_fim: Date,dep_id:number): Promise<RowDataPacket[]> {
+    async ListarPeriodo(pesq: string, data_inicio: Date, data_fim: Date): Promise<RowDataPacket[]> {
 
         let query = `SELECT
                         e.ent_id AS id,
@@ -91,15 +91,13 @@ export default class Entradas extends BaseModel implements iEntradaFields, iBase
                      FROM tb_entradas e
                      LEFT JOIN tb_fornecedores f ON f.for_id = e.ent_for_id
                      LEFT JOIN tb_depositos d ON d.dep_id = e.ent_dep_id
-                     LEFT JOIN fsph_ambulatorio.tb_paciente p ON p.num_paciente = e.ent_pac_id
-                     WHERE e.ent_dep_id = :dep_id AND (e.ent_date >= :data_inicio
-                       AND e.ent_date <= :data_fim) AND e.ent_status = 1`;
+                     LEFT JOIN fsph_ambulatorio.tb_pacientes p ON p.num_paciente = e.ent_pac_id
+                     WHERE (e.ent_date >= :data_inicio AND e.ent_date <= :data_fim) AND e.ent_status = 1`;
 
         if (pesq !== '*') {
             query += ` AND (
                 e.ent_doc LIKE :pesq
                 OR f.for_razao_social LIKE :pesq
-                OR e.ent_doc LIKE :pesq
             )`;
         }
 
@@ -109,8 +107,7 @@ export default class Entradas extends BaseModel implements iEntradaFields, iBase
         const [rows] = await this.ExecuteQuery(query, {
             pesq: `%${pesq}%`,
             data_inicio,
-            data_fim,
-            dep_id
+            data_fim
         });
 
         return rows as RowDataPacket[];

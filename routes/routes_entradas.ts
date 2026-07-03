@@ -8,7 +8,7 @@ import { applyControllerError } from '../utils/controllerError.js';
 
 const router = Router();
 
-router.get('/listar/:pesq/:data_inicio/:data_fim/:dep_id', Controller_Entradas.ListarTodos);
+router.get('/listar/:pesq/:data_inicio/:data_fim', Controller_Entradas.ListarTodos);
 router.get('/buscar/:ent_id', Controller_Entradas.BuscarPorId);
 router.get('/listar-nao-aprovados/:pesq/:data_inicio/:data_fim/:dep_id', Controller_Entradas.ListarEntradasNaoAprovados);
 router.post('/aprovar-entradas', Controller_Entradas.AprovarEntradas);

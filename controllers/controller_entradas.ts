@@ -27,15 +27,8 @@ export default class Controller_Entradas {
             await db.Connect();
 
             const pesq = String(req.params.pesq || '*');
-            const dep_id = Number(req.params.dep_id || 0)
             const data_inicio = new Date(String(req.params.data_inicio));
             const data_fim = new Date(String(req.params.data_fim));
-
-            if (dep_id === 0) {
-                 const error = new Error('Deposito inválido') as any;
-                error.statusCode = 400;
-                throw error;
-            }
 
             if (Number.isNaN(data_inicio.getTime())) {
                 const error = new Error('Data de início inválida') as any;
@@ -57,7 +50,7 @@ export default class Controller_Entradas {
 
             const entradas = new Entradas(db.connection);
 
-            const result = await entradas.ListarPeriodo(pesq, data_inicio, data_fim,dep_id);
+            const result = await entradas.ListarPeriodo(pesq, data_inicio, data_fim);
 
             resdata.data = result;
 
