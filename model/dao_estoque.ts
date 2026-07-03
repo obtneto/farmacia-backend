@@ -80,7 +80,7 @@ export default class Estoque extends BaseModel implements iEstoqueFields, iBaseM
       AND m.med_tipo_codigo = :med_tipo_codigo`
 
     if (pesq !== '*') {
-      query += ' AND (m.med_descr LIKE :pesq OR m.med_descr_coml LIKE :pesq)'
+      query += ' AND (m.med_descr LIKE :pesq OR m.med_descr_coml LIKE :pesq OR e.est_lote LIKE :pesq)'
     }
 
     const [rows] = await this.ExecuteQuery(query, {

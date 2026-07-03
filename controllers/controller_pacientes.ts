@@ -22,7 +22,7 @@ export default class Controller_Pacientes {
                                        FROM tb_pacientes`;
 
                   if (pesq !== '*') {
-                        query += `  WHERE nom_paciente LIKE :pesq OR nom_social LIKE :pesq`;
+                        query += `  WHERE nom_paciente LIKE :pesq OR nom_social LIKE :pesq OR cpf LIKE :pesq`;
                   } else {
                         query += ` LIMIT 55`;
                   }
