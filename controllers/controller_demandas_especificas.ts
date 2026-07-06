@@ -9,10 +9,38 @@ import ItensDemandasEspecificas from '../model/dao_itens_demandas_especificas.js
 import { Request, Response } from 'express';
 import { iresdata } from './interface_controllers.js';
 import { applyControllerError } from "../utils/controllerError.js";
+import pdfMake from "pdfmake/build/pdfmake.js";
+import pdfFonts from "pdfmake/build/vfs_fonts.js";
 import { RowDataPacket } from 'mysql2';
-import { it } from 'node:test';
+
+pdfMake.addVirtualFileSystem(pdfFonts);
 
 export default class Controller_DemandasEspecificas {
+
+    private static readonly PDF_PAGE_MARGIN_HORIZONTAL = 24;
+    private static readonly PDF_PAGE_CONTENT_WIDTH = 595.28 - Controller_DemandasEspecificas.PDF_PAGE_MARGIN_HORIZONTAL * 2;
+
+    private static async buildPdfBuffer(docDefinition: object): Promise<Buffer> {
+        const pdfDocument = pdfMake.createPdf(docDefinition);
+        const pdfBlob = await pdfDocument.getBlob();
+        const pdfArrayBuffer = await pdfBlob.arrayBuffer();
+
+        return Buffer.from(pdfArrayBuffer);
+    }
+
+    private static formatDate(value: Date | string | null): string {
+        if (!value) {
+            return '';
+        }
+
+        const date = value instanceof Date ? value : new Date(value);
+
+        if (Number.isNaN(date.getTime())) {
+            return '';
+        }
+
+        return date.toLocaleDateString('pt-BR', { timeZone: 'America/Maceio' });
+    }
 
     static async Buscar(req: Request, res: Response) {
 
@@ -182,7 +210,6 @@ export default class Controller_DemandasEspecificas {
             }
 
             const demandasEspecificas = new DemandasEspecificas(db.connection);
-            const itens_demandas = new ItensDemandasEspecificas(db.connection);
 
             await demandasEspecificas.BuscarPorId(dem_id);
 
@@ -463,7 +490,7 @@ export default class Controller_DemandasEspecificas {
                 itensEntradas.ite_ent_lote = itemLote;
                 itensEntradas.ite_ent_lote_validade = itemLoteValidade;
                 itensEntradas.ite_ent_qtde = itemQtde;
-
+            
                 await itensEntradas.Salvar();
 
                 await demandas.BuscarPorPaciente(ent_pac_id);
@@ -480,6 +507,7 @@ export default class Controller_DemandasEspecificas {
                 itensDemandas.ite_dem_med_qtde = itemQtde;
                 itensDemandas.ite_dem_id = demandas.dem_id;
                 itensDemandas.ite_dem_med_id = itemMedId;
+                itensDemandas.ite_ent_id = entradas.ent_id;
                 
                 await itensDemandas.Salvar();
                 
@@ -535,6 +563,336 @@ export default class Controller_DemandasEspecificas {
 
         res.status(resdata.status).json(resdata);
     
+    }
+
+    static async ImprimirRecibo(req: Request, res: Response) {
+
+        const db : iDatabase = new Database();
+
+        try {
+
+            const ent_id = Number(req.params.ent_id || 0);
+
+            if (ent_id === 0) {
+                const error = new Error('ID da entrada não informado');
+                error.statusCode = 400;
+                throw error;
+            }
+
+            void await db.Connect();
+
+            const itensEntradas = new ItensEntradas(db.connection);
+            const cabecalho = await itensEntradas.BuscarCabecalhoRecibo(ent_id);
+
+            if (!cabecalho) {
+                const error = new Error('Entrada não encontrada');
+                error.statusCode = 404;
+                throw error;
+            }
+
+            const itens = await itensEntradas.ListarItensRecibo(ent_id);
+
+            if (itens.length === 0) {
+                const error = new Error('Nenhum item encontrado para a entrada informada');
+                error.statusCode = 404;
+                throw error;
+            }
+
+            const dataFormatada = Controller_DemandasEspecificas.formatDate(cabecalho.ent_date) || '-';
+            const numeroDocumento = String(cabecalho.ent_doc || '-');
+            const paciente = String(cabecalho.paciente || '').trim() || 'NAO INFORMADO';
+            const emitidoEm = new Date().toLocaleString('pt-BR', { timeZone: 'America/Maceio' });
+            const linhasItens = [
+                [
+                    { text: 'Codigo', style: 'tableHeader' },
+                    { text: 'Medicamento', style: 'tableHeader' },
+                    { text: 'Und', style: 'tableHeader' },
+                    { text: 'Lote', style: 'tableHeader' },
+                    { text: 'Qtde', style: 'tableHeader' },
+                    { text: 'Validade', style: 'tableHeader' },
+                ],
+                ...itens.map((item) => ([
+                    { text: String(item.codigo ?? ''), style: 'tableCellCenter' },
+                    { text: String(item.medicamento || ''), style: 'tableCell' },
+                    { text: String(item.und ?? ''), style: 'tableCellCenter' },
+                    { text: String(item.lote || ''), style: 'tableCellCenter' },
+                    { text: String(item.qtde ?? ''), style: 'tableCellCenter' },
+                    { text: Controller_DemandasEspecificas.formatDate(item.validade), style: 'tableCellCenter' },
+                ])),
+            ];
+
+            const docDefinition = {
+                info: {
+                    title: 'Recibo de Entrada de Mercadoria Demandas Especificas',
+                    author: 'Farmacia Ambulatorial',
+                    subject: `Recibo da entrada ${ent_id}`,
+                },
+                pageSize: 'A4',
+                pageMargins: [24, 72, 24, 42],
+                header: (currentPage: number, pageCount: number) => ({
+                    margin: [24, 18, 24, 0],
+                    stack: [
+                        {
+                            columns: [
+                                {
+                                    width: '*',
+                                    stack: [
+                                        { text: 'FARMACIA AMBULATORIAL HOSPITALAR', style: 'eyebrow' },
+                                        { text: 'Recibo de Entrada de Mercadoria', style: 'reportTitle', margin: [0, 3, 0, 0] },
+                                    ],
+                                },
+                                {
+                                    width: 176,
+                                    alignment: 'right',
+                                    stack: [
+                                        { text: `Pagina ${currentPage} de ${pageCount}`, style: 'headerMeta', margin: [0, 8, 0, 0] },
+                                    ],
+                                },
+                            ],
+                        },
+                        {
+                            canvas: [
+                                { type: 'line', x1: 0, y1: 12, x2: Controller_DemandasEspecificas.PDF_PAGE_CONTENT_WIDTH, y2: 12, lineWidth: 1, lineColor: '#d7e0ea' },
+                            ],
+                        },
+                    ],
+                }),
+                footer: (currentPage: number, pageCount: number) => ({
+                    margin: [24, 0, 24, 14],
+                    columns: [
+                        { text: 'Sistema de Farmacia Ambulatorial', style: 'footerMeta' },
+                        { text: `Recibo ${numeroDocumento}`, style: 'footerMeta', alignment: 'center' },
+                        { text: `Pagina ${currentPage}/${pageCount}`, style: 'footerMeta', alignment: 'right' },
+                    ],
+                }),
+                content: [
+                    {
+                        margin: [0, 0, 0, 14],
+                        table: {
+                            widths: ['*', 176],
+                            body: [
+                                [
+                                    {
+                                        stack: [
+                                            { text: 'Dados do recibo', style: 'sectionLabel' },
+                                            { text: 'Identificacao da entrada e do paciente', style: 'sectionTitle', margin: [0, 3, 0, 8] },
+                                            {
+                                                columns: [
+                                                    { width: '*', text: [{ text: 'Data: ', bold: true }, dataFormatada], style: 'metaValue' },
+                                                    { width: 160, text: [{ text: 'Numero: ', bold: true }, numeroDocumento], style: 'metaValue', alignment: 'right' },
+                                                ],
+                                            },
+                                            { text: [{ text: 'Paciente: ', bold: true }, paciente], style: 'metaValue', margin: [0, 8, 0, 0] },
+                                        ],
+                                    },
+                                    {
+                                        stack: [
+                                            { text: 'Emitido em', style: 'metaLabel', alignment: 'right' },
+                                            { text: emitidoEm, style: 'metaValue', alignment: 'right', margin: [0, 3, 0, 0] },
+                                        ],
+                                    },
+                                ],
+                            ],
+                        },
+                        layout: {
+                            fillColor: () => '#f8fbfc',
+                            hLineWidth: (index: number, node: any) => (index === 0 || index === node.table.body.length ? 1 : 0),
+                            vLineWidth: (index: number, node: any) => (index === 0 || index === node.table.widths.length ? 1 : 0),
+                            hLineColor: () => '#dce7ef',
+                            vLineColor: () => '#dce7ef',
+                            paddingLeft: (index: number) => index === 0 ? 14 : 12,
+                            paddingRight: (index: number, node: any) => index === node.table.widths.length - 1 ? 14 : 12,
+                            paddingTop: () => 14,
+                            paddingBottom: () => 14,
+                        },
+                    },
+                    {
+                        margin: [0, 0, 0, 8],
+                        columns: [
+                            { text: 'Declaracao de recebimento', style: 'sectionTitle' },
+                        ],
+                    },
+                    {
+                        margin: [0, 0, 0, 14],
+                        text: 'Informamos o recebimento do medicamento abaixo desriminado, do referente paciente para armazenamento no HEMOSE, até o uso total dos frascos na terapia medicamentosa.',
+                        style: 'bodyText',
+                        alignment: 'justify',
+                    },
+                    {
+                        table: {
+                            headerRows: 1,
+                            widths: [52, '*', 44, 72, 52, 64],
+                            body: linhasItens,
+                        },
+                        layout: {
+                            fillColor: (rowIndex: number) => {
+                                if (rowIndex === 0) {
+                                    return '#174a5a';
+                                }
+
+                                return rowIndex % 2 === 0 ? '#f7fafc' : '#ffffff';
+                            },
+                            hLineWidth: (index: number) => index === 0 ? 0 : 1,
+                            vLineWidth: () => 0,
+                            hLineColor: (index: number) => index === 1 ? '#174a5a' : '#dce7ef',
+                            paddingLeft: (index: number) => index === 0 ? 8 : 10,
+                            paddingRight: (index: number, node: any) => index === node.table.widths.length - 1 ? 8 : 10,
+                            paddingTop: (index: number) => index === 0 ? 9 : 8,
+                            paddingBottom: (index: number) => index === 0 ? 9 : 8,
+                        },
+                    },
+                    {
+                        margin: [0, 12, 0, 0],
+                        table: {
+                            widths: ['*', '*'],
+                            body: [
+                                [
+                                    {
+                                        stack: [
+                                            { text: 'Assinatura Farmacia', style: 'signatureLabel', margin: [0, 0, 0, 42] },
+                                            {
+                                                canvas: [
+                                                    { type: 'line', x1: 0, y1: 0, x2: 220, y2: 0, lineWidth: 1, lineColor: '#94a3b8' },
+                                                ],
+                                            },
+                                        ],
+                                    },
+                                    {
+                                        stack: [
+                                            { text: 'Assinatura Paciente', style: 'signatureLabel', margin: [0, 0, 0, 42] },
+                                            {
+                                                canvas: [
+                                                    { type: 'line', x1: 0, y1: 0, x2: 220, y2: 0, lineWidth: 1, lineColor: '#94a3b8' },
+                                                ],
+                                            },
+                                        ],
+                                    },
+                                ],
+                            ],
+                        },
+                        layout: {
+                            hLineWidth: (index: number, node: any) => (index === 0 || index === node.table.body.length ? 1 : 0),
+                            vLineWidth: (index: number, node: any) => (index === 0 || index === node.table.widths.length ? 1 : 0),
+                            hLineColor: () => '#dce7ef',
+                            vLineColor: () => '#dce7ef',
+                            paddingLeft: () => 12,
+                            paddingRight: () => 12,
+                            paddingTop: () => 10,
+                            paddingBottom: () => 10,
+                            fillColor: () => '#ffffff',
+                        },
+                    },
+                ],
+                styles: {
+                    eyebrow: {
+                        fontSize: 8,
+                        bold: true,
+                        color: '#0f766e',
+                    },
+                    reportTitle: {
+                        bold: true,
+                        fontSize: 18,
+                        color: '#0f172a',
+                    },
+                    reportSubtitle: {
+                        fontSize: 9,
+                        color: '#64748b',
+                    },
+                    headerBadge: {
+                        fontSize: 8,
+                        bold: true,
+                        color: '#174a5a',
+                        fillColor: '#e6f4f1',
+                    },
+                    headerMeta: {
+                        fontSize: 9,
+                        color: '#475569',
+                    },
+                    sectionLabel: {
+                        fontSize: 8,
+                        bold: true,
+                        color: '#0f766e',
+                    },
+                    sectionTitle: {
+                        fontSize: 13,
+                        bold: true,
+                        color: '#0f172a',
+                    },
+                    bodyMuted: {
+                        fontSize: 9,
+                        color: '#64748b',
+                    },
+                    metaLabel: {
+                        fontSize: 8,
+                        bold: true,
+                        color: '#64748b',
+                    },
+                    metaValue: {
+                        fontSize: 10,
+                        bold: true,
+                        color: '#0f172a',
+                    },
+                    bodyText: {
+                        fontSize: 9,
+                        color: '#1f2937',
+                        lineHeight: 1.25,
+                    },
+                    tableHeader: {
+                        fontSize: 8,
+                        bold: true,
+                        color: '#ffffff',
+                        alignment: 'center',
+                        margin: [0, 1, 0, 0],
+                    },
+                    tableCell: {
+                        fontSize: 8.5,
+                        color: '#1f2937',
+                    },
+                    tableCellCenter: {
+                        fontSize: 8.5,
+                        color: '#334155',
+                        alignment: 'center',
+                    },
+                    signatureLabel: {
+                        fontSize: 8,
+                        bold: true,
+                        color: '#64748b',
+                    },
+                    summaryNote: {
+                        fontSize: 8,
+                        color: '#64748b',
+                    },
+                    footerMeta: {
+                        fontSize: 8,
+                        color: '#64748b',
+                    },
+                },
+                defaultStyle: {
+                    font: 'Roboto',
+                    fontSize: 9,
+                    color: '#1f2937',
+                },
+            };
+
+            const pdfBuffer = await Controller_DemandasEspecificas.buildPdfBuffer(docDefinition);
+
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', `inline; filename=\"recibo-entrada-demanda-${ent_id}.pdf\"`);
+            res.status(200).send(pdfBuffer);
+
+        } catch (error :any) {
+            const resdata : iresdata = {
+                err: 0,
+                msg: '',
+                status: 200,
+                data: {}
+            };
+
+            applyControllerError(resdata, error, 'Controller Demandas Específicas');
+            res.status(resdata.status).json(resdata);
+        }
+
+        void await db.Disconnect();
     }
         
 }

@@ -196,6 +196,7 @@ function inferSummary(method, fullPath) {
 
 function buildOperation({ method, routePath, fullPath }) {
   const requestBodySchema = REQUEST_BODY_SCHEMAS[`${method.toUpperCase()} ${fullPath}`];
+  const isPdfInlineRoute = method === 'get' && fullPath === '/demandas-especificas/imprimir-recibo/{ent_id}';
   const operation = {
     tags: [toTitleCase(inferTag(fullPath))],
     summary: inferSummary(method, fullPath),
@@ -213,9 +214,20 @@ function buildOperation({ method, routePath, fullPath }) {
       '200': {
         description: 'Sucesso',
         content: {
-          'application/json': {
-            schema: { $ref: '#/components/schemas/ApiResponse' },
-          },
+          ...(isPdfInlineRoute
+            ? {
+                'application/pdf': {
+                  schema: {
+                    type: 'string',
+                    format: 'binary',
+                  },
+                },
+              }
+            : {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/ApiResponse' },
+                },
+              }),
         },
       },
       '400': {

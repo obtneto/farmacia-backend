@@ -5,6 +5,8 @@ import Estoque from "../model/dao_estoque.js";
 import ItensEntradas from "../model/dao_itens_entradas.js";
 import Medicamentos from "../model/dao_medicamentos.js";
 import Movimentacoes from "../model/dao_movimentacoes.js";
+import DemandasEspecificas from "../model/dao_demanda_especificas.js";
+import ItensDemandasEspecificas from "../model/dao_itens_demandas_especificas.js";
 import Depositos from "../model/dao_depositos.js";
 import { iresdata } from "./interface_controllers.js";
 import { applyControllerError } from "../utils/controllerError.js";
@@ -582,6 +584,8 @@ export default class Controller_Entradas {
 
             const entradas = new Entradas(db.connection);
             const itensEntradas = new ItensEntradas(db.connection);
+            const demandasEspecificas = new DemandasEspecificas(db.connection);
+            const itensDemandasEspecificas = new ItensDemandasEspecificas(db.connection);
 
             await entradas.BuscarPorId(ent_id);
 
@@ -597,8 +601,18 @@ export default class Controller_Entradas {
                 throw error;
             }
 
+            await demandasEspecificas.BuscarPorPaciente(entradas.ent_pac_id || 0);
+
+            if (demandasEspecificas.found) {
+               await db.connection.execute(
+                    `DELETE FROM tb_itens_demandas_especificas WHERE ite_ent_id = :ent_id`,
+                    { ent_id: entradas.ent_id }
+                );
+            }
+
             await itensEntradas.ExcluirPorEntrada(ent_id);
             await entradas.Excluir(ent_id);
+
             await db.Commit();
 
             resdata.msg = 'Entrada excluida com sucesso';

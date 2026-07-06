@@ -7,6 +7,7 @@ export interface iItensDemandasEspecificasFields {
     ite_dem_med_id: number | null,
     ite_dem_med_qtde: number | null,
     ite_dem_med_ativo: number | null,
+    ite_ent_id: number | null
 }
 
 export default class ItensDemandasEspecificas extends BaseModel implements iItensDemandasEspecificasFields, iBaseModel{
@@ -22,7 +23,8 @@ export default class ItensDemandasEspecificas extends BaseModel implements iIten
             ite_dem_id: null,
             ite_dem_med_id: null,
             ite_dem_med_qtde: null,
-            ite_dem_med_ativo: null
+            ite_dem_med_ativo: null,
+            ite_ent_id: null
         };
 
         super(connection,'tb_itens_demandas_especificas',initFields,'ite_id');
@@ -45,6 +47,9 @@ export default class ItensDemandasEspecificas extends BaseModel implements iIten
 
     set ite_dem_med_ativo(dem_med_ativo: number | null) {this._fields.ite_dem_med_ativo = dem_med_ativo}
     get ite_dem_med_ativo(): number | null { return this._fields.ite_dem_med_ativo}
+
+    set ite_ent_id(ent_id: number | null) {this._fields.ite_ent_id = ent_id}
+    get ite_ent_id(): number | null { return this._fields.ite_ent_id}
 
     public async ListarAtivos(dem_id: number) : Promise<RowDataPacket[]>{
 
