@@ -122,8 +122,7 @@ export default class Controller_Requisicoes {
             const req_pac_id = Number(req.body.req_pac_id || 0);
             const req_qtde = Number(req.body.req_qtde || 0);
             const req_lote = String(req.body.req_lote || null).trim().toLocaleUpperCase();
-            const req_val_mes = Number(req.body.req_val_mes || 0);
-            const req_val_ano = Number(req.body.req_val_ano || 0);
+            const req_validade = new Date(req.body.req_validade || null);
             const req_dep_id = Number(req.body.req_dep_id || 0);
             const req_local_id = Number(req.body.req_local_id || 0);
             const req_tipo = String(req.body.req_tipo || null).trim().toLocaleUpperCase();
@@ -166,14 +165,14 @@ export default class Controller_Requisicoes {
                 throw error;
             }
 
-            if (!req_val_mes || req_val_mes <= 0) {
-                const error = new Error('Valor mês não informado ou inválido') as any;
+            if (!req_validade || isNaN(req_validade.getTime())) {
+                const error = new Error('Validade não informada ou inválida') as any;
                 error.statusCode = 400;
                 throw error;
             }
 
-            if (!req_val_ano || req_val_ano <= 0) {
-                const error = new Error('Valor ano não informado ou inválido') as any;
+            if (!req_dep_id || req_dep_id <= 0) {
+                const error = new Error('Departamento    não informado ou inválido') as any;
                 error.statusCode = 400;
                 throw error;
             }
@@ -208,8 +207,7 @@ export default class Controller_Requisicoes {
             requisicoes.req_pac_id = req_pac_id;
             requisicoes.req_qtde = req_qtde;
             requisicoes.req_lote = req_lote;
-            requisicoes.req_val_mes = req_val_mes;
-            requisicoes.req_val_ano = req_val_ano;
+            requisicoes.req_validade = req_validade;
             requisicoes.req_dep_id = req_dep_id;
             requisicoes.req_local_id = req_local_id;
             requisicoes.req_tipo = req_tipo;
@@ -290,16 +288,16 @@ export default class Controller_Requisicoes {
             await requisicoes.Salvar();
 
             //Buscar pacientes com demandas específicas para atualizar as quantidades demandadas, caso existam. E atualizar o estoque.
-            await demandas.BuscarPorPaciente(item.req_pac_id);
+            // await demandas.BuscarPorPaciente(item.req_pac_id);
 
-            if (demandas.found) {
+            // if (demandas.found) {
                 
-                demandas.dem_qtde_medicamento -= item.req_qtde;
-                demandas.dem_qtde_doses -= item.req_qtde;
+            //     demandas.dem_qtde_medicamento -= item.req_qtde;
+            //     demandas.dem_qtde_doses -= item.req_qtde;
 
-                await demandas.Salvar();
+            //     await demandas.Salvar();
 
-            }
+            // }
 
             // Atualizar o estoque
             await estoque.BuscarPorItemEstoque(item.req_med_id,item.req_dep_id,item.req_lote);

@@ -8,8 +8,7 @@ export interface iRequisicoesFields {
     req_med_id : number | null,
     req_qtde : number | null,
     req_lote: string | null,
-    req_val_mes: number | null,
-    req_val_ano: number | null,
+    req_validade: Date | null,
     req_dep_id: number | null,
     req_local_id: number | null,
     req_aprova: 0 | 1 | null,
@@ -35,8 +34,7 @@ export default class Requisicoes extends BaseModel implements iRequisicoesFields
             req_med_id: null,
             req_qtde: null,
             req_lote: null,
-            req_val_mes: null,
-            req_val_ano: null,
+            req_validade: null,
             req_dep_id: null,
             req_local_id: null,
             reg_dt_aprovacao: null,
@@ -70,11 +68,8 @@ export default class Requisicoes extends BaseModel implements iRequisicoesFields
     set req_lote(lote: string | null) { this._fields.req_lote = lote;}
     get req_lote(): string | null {return this._fields.req_lote;}
 
-    set req_val_mes(val_mes: number | null) { this._fields.req_val_mes = val_mes;}
-    get req_val_mes(): number | null {return this._fields.req_val_mes;}
-
-    set req_val_ano(val_ano: number | null) { this._fields.req_val_ano = val_ano;}
-    get req_val_ano(): number | null {return this._fields.req_val_ano;}
+    set req_validade(validade: Date | null) { this._fields.req_validade = validade;}
+    get req_validade(): Date | null {return this._fields.req_validade;}
 
     set req_dep_id(dep_id: number | null) { this._fields.req_dep_id = dep_id;}
     get req_dep_id(): number | null {return this._fields.req_dep_id;}
