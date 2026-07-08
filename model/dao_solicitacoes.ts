@@ -69,14 +69,14 @@ export default class Solicitacoes extends BaseModel implements iBaseModel,iSolic
 
     }
 
-    public async ListarEncerradas(pesq : string = '',data_ini: string = '',data_fim: string = '') : Promise<RowDataPacket[]>{
+    public async ListarEncerradas(data_ini: string = '',data_fim: string = '') : Promise<RowDataPacket[]>{
 
       const query : string = `SELECT s.*, d.dep_nome, l.local_nome FROM tb_solicitacoes s
                               LEFT JOIN tb_depositos d ON s.sol_dep_id = d.dep_id
                               LEFT JOIN tb_locais l ON s.sol_local_id = l.local_id
                               WHERE s.sol_status = 1 AND s.sol_date >= :data_ini AND s.sol_date <= :data_fim`;
 
-      const [rows] = await this.ExecuteQuery(query, {pesq: `%${pesq}%`, data_ini, data_fim}) as [RowDataPacket[]];
+      const [rows] = await this.ExecuteQuery(query, {data_ini, data_fim}) as [RowDataPacket[]];
 
       return rows;
 

@@ -204,13 +204,13 @@ export default class Controller_Estoque {
             const list_itens = req.body.list_itens || [];
             
             if (est_dep_id_origem === 0) {
-                const error = new Error("Departamento de origem não informado") as any;
+                const error = new Error("Deposito de origem não informado") as any;
                 error.statusCode = 400;
                 throw error;
             }
 
             if (est_dep_id_destino === 0) {
-                const error = new Error("Departamento de destino não informado") as any;
+                const error = new Error("Deposito de destino não informado") as any;
                 error.statusCode = 400;
                 throw error;
             }
@@ -259,6 +259,7 @@ export default class Controller_Estoque {
                
                 /* ************************************************************************ */
                 await estoqueOrigem.BuscarPorItemEstoque(est_dep_id_origem, med_id, lote);
+                
                 await depositos.BuscarPorId(est_dep_id_origem);
 
                 if (!depositos.found) {

@@ -59,35 +59,23 @@ export default class Estoque extends BaseModel implements iEstoqueFields, iBaseM
 
   async ListarAtivos(pesq: string = '', dep_id: number, med_tipo_codigo: string): Promise<RowDataPacket[]> {
     
-      let query = `SELECT
-      m.med_id AS id,
-      m.med_descr AS descricao,
-      m.med_descr_coml AS descricao_comercial,
-      m.med_und AS unidade,
-      e.est_lote AS lote,
-      e.est_saldo_bloqueado AS saldo_bloqueado,
-      e.est_saldo_disponivel AS saldo_disponivel,
-      e.est_validade AS validade,
-      m.med_alert AS alerta_validade,
-      CASE
-        WHEN DATEDIFF(e.est_validade, CURDATE()) < 0 THEN '-'
-        ELSE DATEDIFF(e.est_validade, CURDATE())
-      END AS dias_para_validade
-    FROM tb_estoque e
-    LEFT JOIN tb_medicamentos m ON e.est_med_id = m.med_id
-    WHERE e.est_dep_id = :dep_id
-      AND e.est_saldo_disponivel > 0
-      AND m.med_tipo_codigo = :med_tipo_codigo`
+    let query = `SELECT m.med_id AS id,m.med_descr AS descricao,m.med_descr_coml AS descricao_comercial,
+                  m.med_und AS unidade, e.est_lote AS lote,e.est_saldo_bloqueado AS saldo_bloqueado,
+                  e.est_saldo_disponivel AS saldo_disponivel, e.est_validade AS validade,m.med_alert AS alerta_validade,
+                CASE
+                  WHEN DATEDIFF(e.est_validade, CURDATE()) < 0 THEN '-'
+                  ELSE DATEDIFF(e.est_validade, CURDATE())
+                END AS dias_para_validade
+                FROM tb_estoque e
+                LEFT JOIN tb_medicamentos m ON e.est_med_id = m.med_id
+                WHERE e.est_dep_id = :dep_id AND e.est_saldo_disponivel > 0
+                AND m.med_tipo_codigo = :med_tipo_codigo`
 
     if (pesq !== '*') {
       query += ' AND (m.med_descr LIKE :pesq OR m.med_descr_coml LIKE :pesq OR e.est_lote LIKE :pesq)'
     }
 
-    const [rows] = await this.ExecuteQuery(query, {
-      dep_id,
-      med_tipo_codigo,
-      pesq: `%${pesq}%`,
-    }) as [RowDataPacket[]]
+    const [rows] = await this.ExecuteQuery(query, {dep_id,med_tipo_codigo, pesq: `%${pesq}%`}) as [RowDataPacket[]]
 
     return rows as RowDataPacket[]
   }
