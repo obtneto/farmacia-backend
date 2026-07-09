@@ -29,16 +29,16 @@ export default class Controller_Entradas {
             await db.Connect();
 
             const pesq = String(req.params.pesq || '*');
-            const data_inicio = new Date(String(req.params.data_inicio));
-            const data_fim = new Date(String(req.params.data_fim));
+            const data_inicio = String(req.params.data_inicio);
+            const data_fim = String(req.params.data_fim);
 
-            if (Number.isNaN(data_inicio.getTime())) {
+            if (Number.isNaN(new Date(data_inicio).getTime())) {
                 const error = new Error('Data de início inválida') as any;
                 error.statusCode = 400;
                 throw error;
             }
 
-            if (Number.isNaN(data_fim.getTime())) {
+            if (Number.isNaN(new Date(data_fim).getTime())) {
                 const error = new Error('Data de fim inválida') as any;
                 error.statusCode = 400;
                 throw error

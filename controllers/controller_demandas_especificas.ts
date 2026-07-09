@@ -623,14 +623,14 @@ export default class Controller_DemandasEspecificas {
 
             const docDefinition = {
                 info: {
-                    title: 'Recibo de Entrada de Mercadoria Demandas Especificas',
+                    title: 'Recibo Entrada Medicamentos',
                     author: 'Farmacia Ambulatorial',
                     subject: `Recibo da entrada ${ent_id}`,
                 },
                 pageSize: 'A4',
                 pageMargins: [24, 72, 24, 42],
                 header: (currentPage: number, pageCount: number) => ({
-                    margin: [24, 18, 24, 0],
+                    margin: [28, 18, 28, 0],
                     stack: [
                         {
                             columns: [
@@ -638,7 +638,7 @@ export default class Controller_DemandasEspecificas {
                                     width: '*',
                                     stack: [
                                         { text: 'FARMACIA AMBULATORIAL HOSPITALAR', style: 'eyebrow' },
-                                        { text: 'Recibo de Entrada de Mercadoria', style: 'reportTitle', margin: [0, 3, 0, 0] },
+                                        { text: 'Recibo de Entrada Medicamentos', style: 'reportTitle', margin: [0, 3, 0, 0] },
                                     ],
                                 },
                                 {
@@ -674,8 +674,7 @@ export default class Controller_DemandasEspecificas {
                                 [
                                     {
                                         stack: [
-                                            { text: 'Dados do recibo', style: 'sectionLabel' },
-                                            { text: 'Identificacao da entrada e do paciente', style: 'sectionTitle', margin: [0, 3, 0, 8] },
+                                            { text: 'Dados do recibo', style: 'sectionLabel', margin: [0, 0, 0, 6] },
                                             {
                                                 columns: [
                                                     { width: '*', text: [{ text: 'Data: ', bold: true }, dataFormatada], style: 'metaValue' },
@@ -687,8 +686,8 @@ export default class Controller_DemandasEspecificas {
                                     },
                                     {
                                         stack: [
-                                            { text: 'Emitido em', style: 'metaLabel', alignment: 'right' },
-                                            { text: emitidoEm, style: 'metaValue', alignment: 'right', margin: [0, 3, 0, 0] },
+                                            { text: 'Emitido em', style: 'metaLabel', alignment: 'right', margin: [0, 0, 0, 6] },
+                                            { text: emitidoEm, style: 'metaValue', alignment: 'right' },
                                         ],
                                     },
                                 ],
@@ -791,7 +790,7 @@ export default class Controller_DemandasEspecificas {
                     },
                     reportTitle: {
                         bold: true,
-                        fontSize: 18,
+                        fontSize: 16,
                         color: '#0f172a',
                     },
                     reportSubtitle: {
@@ -814,7 +813,7 @@ export default class Controller_DemandasEspecificas {
                         color: '#0f766e',
                     },
                     sectionTitle: {
-                        fontSize: 13,
+                        fontSize: 12,
                         bold: true,
                         color: '#0f172a',
                     },

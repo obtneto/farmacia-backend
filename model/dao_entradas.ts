@@ -75,7 +75,7 @@ export default class Entradas extends BaseModel implements iEntradaFields, iBase
     set ent_dt_aprov(ent_dt_aprov: Date | string | null) { this._fields.ent_dt_aprov = ent_dt_aprov; }
     get ent_dt_aprov(): Date | string | null { return this._fields.ent_dt_aprov; }
 
-    async ListarPeriodo(pesq: string, data_inicio: Date, data_fim: Date): Promise<RowDataPacket[]> {
+    async ListarPeriodo(pesq: string, data_inicio: String, data_fim: String): Promise<RowDataPacket[]> {
 
         let query = `SELECT
                         e.ent_id AS id,
