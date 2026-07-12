@@ -56,14 +56,14 @@ export default class Solicitacoes extends BaseModel implements iBaseModel,iSolic
     set sol_obs(obs : string | null) { this._fields.sol_obs = obs;}
     get sol_obs() :string | null {return this._fields.sol_obs;}
 
-    public async ListarAbertas(pesq : string = '') : Promise<RowDataPacket[]>{
+    public async ListarAbertas() : Promise<RowDataPacket[]>{
 
       const query : string = `SELECT s.*, d.dep_nome, l.local_nome FROM tb_solicitacoes s
                               LEFT JOIN tb_depositos d ON s.sol_dep_id = d.dep_id
                               LEFT JOIN tb_locais l ON s.sol_local_id = l.local_id
                               WHERE s.sol_status = 0`;
 
-      const [rows] = await this.ExecuteQuery(query, {pesq: `%${pesq}%`}) as [RowDataPacket[]];
+      const [rows] = await this.ExecuteQuery(query) as [RowDataPacket[]];
 
       return rows;
 

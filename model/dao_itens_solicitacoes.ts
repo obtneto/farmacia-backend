@@ -51,7 +51,7 @@ export default class ItensSolicitacoes extends BaseModel implements iBaseModel,i
     set iso_med_validade(validade : Date | string | null) { this._fields.iso_med_validade = validade;}
     get iso_med_validade() :Date | string | null {return this._fields.iso_med_validade;}
 
-    public async ListarItens(sol_id: number) : Promise<RowDataPacket[]>{
+    public async ListarItens(sol_id: number) : Promise<RowDataPacket[]> {
 
       const query : string = `SELECT i.*, m.med_descr, m.med_descr_coml FROM tb_itens_solicitacoes i
                               LEFT JOIN tb_medicamentos m ON i.iso_med_id = m.med_id 

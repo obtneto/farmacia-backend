@@ -10,355 +10,486 @@ import { applyControllerError } from "../utils/controllerError.js";
 
 export default class Controller_Solicitacoes {
 
-    static async Buscar(req: Request, res: Response) {
+      static async Buscar(req: Request, res: Response) {
 
-      const db : iDatabase = new Database('fsph_farmacia');
+            const db : iDatabase = new Database('fsph_farmacia');
 
-      const resdata :iresdata = {
-            err: 0,
-            msg: '',
-            status: 200,
-            data: []
-      };
+            const resdata :iresdata = {
+                  err: 0,
+                  msg: '',
+                  status: 200,
+                  data: []
+            };
 
-      try {
+            try {
 
-            void await db.Connect();
+                  void await db.Connect();
 
-            const sol_id : number = Number(req.params.sol_id || 0);
+                  const sol_id : number = Number(req.params.sol_id || 0);
 
-            if (sol_id === 0) {
-                  const error = new Error('ID da solicitação não informado');
-                  error.statusCode = 400;
-                  throw error;
+                  if (sol_id === 0) {
+                        const error = new Error('ID da solicitação não informado');
+                        error.statusCode = 400;
+                        throw error;
+                  }
+
+                  const solicitacao = new Solicitacoes(db.connection);
+                  const itens = new ItensSolicitacoes(db.connection);
+
+                  const solicitacaoData = await solicitacao.BuscarPorId(sol_id);
+                  const itensData = await itens.ListarItens(sol_id);
+
+                  resdata.data = { solicitacao: solicitacaoData, itens: itensData };
+
+                  res.status(resdata.status).json(resdata);
+
+            } catch (error :any) {
+                  applyControllerError(error, resdata, 'Controller Solicitacoes - Buscar');
+                  
+            } finally {
+                  await db.Disconnect();
+                  res.status(resdata.status).json(resdata);
             }
 
-            const solicitacao = new Solicitacoes(db.connection);
-            const itens = new ItensSolicitacoes(db.connection);
-
-            const solicitacaoData = await solicitacao.BuscarPorId(sol_id);
-            const itensData = await itens.ListarItens(sol_id);
-
-            resdata.data = { solicitacao: solicitacaoData, itens: itensData };
-
-            res.status(resdata.status).json(resdata);
-
-      } catch (error :any) {
-            applyControllerError(error, resdata, 'Controller Solicitacoes - Buscar');
-            
-      } finally {
-            await db.Disconnect();
-            res.status(resdata.status).json(resdata);
       }
 
-    }
+      static async ListarAbertas(req: Request, res: Response) {
 
-    static async ListarAbertas(req: Request, res: Response) {
+            const db : iDatabase = new Database('fsph_farmacia');
 
-      const db : iDatabase = new Database('fsph_farmacia');
+            const resdata :iresdata = {
+                  err: 0,
+                  msg: '',
+                  status: 200,
+                  data: []
+            };
 
-      const resdata :iresdata = {
-            err: 0,
-            msg: '',
-            status: 200,
-            data: []
-      };
+            try {
 
-      try {
+                  void await db.Connect();
 
-            void await db.Connect();
+                  const solicitacoes = new Solicitacoes(db.connection);
 
-            const solicitacoes = new Solicitacoes(db.connection);
+                  const rows = await solicitacoes.ListarAbertas();
 
-            const rows = await solicitacoes.ListarAbertas(req.query.pesq as string || '');
+                  resdata.data = rows;
 
-            resdata.data = rows;
+            } catch (error :any) {
+                  applyControllerError(error, resdata, 'Controller Solicitacoes - ListarAbertas');
+                  
+            } finally {
+                  await db.Disconnect();
+                  res.status(resdata.status).json(resdata);
+            }
 
-      } catch (error :any) {
-            applyControllerError(error, resdata, 'Controller Solicitacoes - ListarAbertas');
-            
-      } finally {
-            await db.Disconnect();
-            res.status(resdata.status).json(resdata);
       }
 
-    }
+      static async ListarEncerradas(req: Request, res: Response) {
 
-    static async ListarEncerradas(req: Request, res: Response) {
+            const db : iDatabase = new Database('fsph_farmacia');
 
-      const db : iDatabase = new Database('fsph_farmacia');
+            const resdata :iresdata = {
+                  err: 0,
+                  msg: '',
+                  status: 200,
+                  data: []
+            };
 
-      const resdata :iresdata = {
-            err: 0,
-            msg: '',
-            status: 200,
-            data: []
-      };
+            try {
 
-      try {
+                  void await db.Connect();
 
-            void await db.Connect();
+                  const data_ini : string = req.query.data_ini as string || '';
+                  const data_fim : string = req.query.data_fim as string || '';
 
-            const data_ini : string = req.query.data_ini as string || '';
-            const data_fim : string = req.query.data_fim as string || '';
+                  if (!data_ini || !data_fim) {
+                        const error = new Error('Data inicial e final devem ser informadas');
+                        error.statusCode = 400;
+                        throw error;
+                  }
 
-            if (!data_ini || !data_fim) {
-                  const error = new Error('Data inicial e final devem ser informadas');
-                  error.statusCode = 400;
-                  throw error;
+                  if (Number.isNaN(new Date(String(data_ini)).getTime())) {
+                        const error = new Error('Data de início inválida') as any;
+                        error.statusCode = 400;
+                        throw error;
+                  }
+
+                  if (Number.isNaN(new Date(String(data_fim)).getTime())) {
+                        const error = new Error('Data de fim inválida') as any;
+                        error.statusCode = 400;
+                        throw error
+                  }
+
+                  if (new Date(String(data_ini)) > new Date(String(data_fim))) {
+                        const error = new Error('Data de início deve ser menor que a data de fim')
+                        error.statusCode =  400;
+                        throw error;
+                  }
+
+                  const solicitacoes = new Solicitacoes(db.connection);
+
+                  const rows = await solicitacoes.ListarEncerradas(data_ini, data_fim);
+
+                  resdata.data = rows;
+
+            } catch (error :any) {
+                  applyControllerError(error, resdata, 'Controller Solicitacoes - ListarEncerradas');
+                  
+            } finally {
+                  await db.Disconnect();
+                  res.status(resdata.status).json(resdata);
             }
 
-            if (Number.isNaN(new Date(String(data_ini)).getTime())) {
-                  const error = new Error('Data de início inválida') as any;
-                  error.statusCode = 400;
-                  throw error;
-            }
-
-            if (Number.isNaN(new Date(String(data_fim)).getTime())) {
-                  const error = new Error('Data de fim inválida') as any;
-                  error.statusCode = 400;
-                  throw error
-            }
-
-            if (new Date(String(data_ini)) > new Date(String(data_fim))) {
-                  const error = new Error('Data de início deve ser menor que a data de fim')
-                  error.statusCode =  400;
-                  throw error;
-            }
-
-            const solicitacoes = new Solicitacoes(db.connection);
-
-            const rows = await solicitacoes.ListarEncerradas(data_ini, data_fim);
-
-            resdata.data = rows;
-
-      } catch (error :any) {
-            applyControllerError(error, resdata, 'Controller Solicitacoes - ListarEncerradas');
-            
-      } finally {
-            await db.Disconnect();
-            res.status(resdata.status).json(resdata);
       }
 
-    }
+      static async Excluir(req: Request, res: Response) {
 
-    static async Excluir(req: Request, res: Response) {
+            const db : iDatabase = new Database('fsph_farmacia');
 
-      const db : iDatabase = new Database('fsph_farmacia');
+            const resdata :iresdata = {
+                  err: 0,
+                  msg: '',
+                  status: 200,
+                  data: []
+            };
 
-      const resdata :iresdata = {
-            err: 0,
-            msg: '',
-            status: 200,
-            data: []
-      };
+            try {
 
-      try {
+                  void await db.Connect();
 
-            void await db.Connect();
+                  const sol_id : number = Number(req.params.sol_id || 0);
 
-            const sol_id : number = Number(req.params.sol_id || 0);
+                  if (sol_id === 0) {
+                        const error = new Error('ID da solicitação não informado');
+                        error.statusCode = 400;
+                        throw error;
+                  }
 
-            if (sol_id === 0) {
-                  const error = new Error('ID da solicitação não informado');
-                  error.statusCode = 400;
-                  throw error;
+                  const solicitacoes = new Solicitacoes(db.connection);
+
+                  await solicitacoes.Excluir(sol_id);
+
+                  resdata.msg = 'Solicitação excluída com sucesso';
+
+            } catch (error :any) {
+                  applyControllerError(error, resdata, 'Controller Solicitacoes - Excluir');
+                  
+            } finally {
+                  await db.Disconnect();
+                  res.status(resdata.status).json(resdata);
             }
 
-            const solicitacoes = new Solicitacoes(db.connection);
-
-            await solicitacoes.Excluir(sol_id);
-
-            resdata.msg = 'Solicitação excluída com sucesso';
-
-      } catch (error :any) {
-            applyControllerError(error, resdata, 'Controller Solicitacoes - Excluir');
-            
-      } finally {
-            await db.Disconnect();
-            res.status(resdata.status).json(resdata);
       }
 
-    }
+      static async Encerrar(req: Request, res: Response) {
 
-    static async Encerrar(req: Request, res: Response) {
+            const db : iDatabase = new Database('fsph_farmacia');
 
-      const db : iDatabase = new Database('fsph_farmacia');
+            const resdata :iresdata = {
+                  err: 0,
+                  msg: '',
+                  status: 200,
+                  data: []
+            };
 
-      const resdata :iresdata = {
-            err: 0,
-            msg: '',
-            status: 200,
-            data: []
-      };
+            try {
+
+                  await db.Connect();
+
+                  await db.Begin();
+
+                  // Extrai os dados do corpo da requisição
+                  const sol_id : number = Number(req.body.sol_id || 0);
+                  const est_dep_id_destino = Number(req.body.est_dep_id_destino) || 0;
+                  const user = String(req.body.user || null);
+
+                  // Valida os dados recebidos
+                  if (sol_id === 0) {
+                  const error = new Error("ID da solicitação não informado") as any;
+                  error.statusCode = 400;
+                  throw error;
+                  }
+
+                  if (est_dep_id_destino === 0) {
+                  const error = new Error("Deposito de destino não informado") as any;
+                  error.statusCode = 400;
+                  throw error;
+                  }
+
+                  if (!user) {
+                  const error = new Error("Usuario não informado.") as any;
+                  error.statusCode = 400;
+                  throw error;
+                  }
+
+                  // Instancia os DAOs necessários
+                  const solicitacoes = new Solicitacoes(db.connection);
+                  const itensSolicitacoes = new ItensSolicitacoes(db.connection);
+                  const estoqueOrigem = new Estoque(db.connection);
+                  const estoqueDestino = new Estoque(db.connection);
+                  const movimentacoes = new Movimentacoes(db.connection);
+                  const depositos = new Depositos(db.connection);
+
+                  // Busca a solicitação pelo ID
+                  await solicitacoes.BuscarPorId(sol_id);
+
+                  if (!solicitacoes.found) {
+                  const error = new Error(`Solicitação ID ${sol_id} não encontrada.`) as any;
+                  error.statusCode = 404;
+                  throw error;
+                  }
+
+                  solicitacoes.sol_status = 1; // Encerrada
+                  
+                  await solicitacoes.Salvar();
+
+                  // Lista os itens da solicitação
+                  const itens = await itensSolicitacoes.ListarItens(sol_id);
+
+                  for (const item of itens) {
+
+                  // Extrai os dados do item da solicitação  
+                  const est_dep_id_origem = Number(item.est_dep_id_origem || 0);
+                  const med_id = Number(item.iso_med_id || 0);
+                  const qtde = Number(item.iso_med_qtde || 0);
+                  const lote = String(item.iso_med_lote || '');
+                  const validade = String(item.iso_med_validade || '');
+
+                  // Valida os dados do item da solicitação
+                  if (est_dep_id_origem === 0) {
+                        const error = new Error("Deposito de origem não informado") as any;
+                        error.statusCode = 400;
+                        throw error;
+                  }
+
+                  if (med_id === 0) {
+                        const error = new Error("ID do medicamento não informado") as any;
+                        error.statusCode = 400;
+                        throw error;
+                  }
+
+                  if (qtde <= 0) {
+                        const error = new Error("Quantidade do medicamento deve ser maior que zero") as any;
+                        error.statusCode = 400;
+                        throw error;
+                  }
+
+                  // Busca os depósitos de origem e destino
+                  await depositos.BuscarPorId(est_dep_id_origem);
+
+                  if (!depositos.found) {
+                        const error = new Error(`Deposito origem não encontrado.`) as any;
+                        error.statusCode = 404;
+                        throw error;
+                  }
+
+                  const deposito_origem = depositos.dep_descr;
+
+                  // Atualiza o estoque de origem
+                  await estoqueOrigem.BuscarPorItemEstoque(est_dep_id_origem, med_id, lote);
+                  if (!estoqueOrigem.found) {
+                        const error = new Error(`Estoque de origem não encontrado para o medicamento ID ${med_id} no depósito ID ${est_dep_id_origem} e lote ${lote}`) as any;
+                        error.statusCode = 404;
+                        throw error;
+                  }
+
+                  estoqueOrigem.est_saldo_disponivel -= qtde;
+
+                  await estoqueOrigem.Salvar();
+
+                  // Atualiza o estoque de destino
+                  await estoqueDestino.BuscarPorItemEstoque(est_dep_id_destino, med_id, lote);
+                  
+                  if (!estoqueDestino.found) {
+                        // Se não existir, cria um novo registro de estoque
+                        estoqueDestino.est_dep_id = est_dep_id_destino;
+                        estoqueDestino.est_med_id = med_id;
+                        estoqueDestino.est_lote = lote;
+                        estoqueDestino.est_saldo_disponivel = qtde;
+                        estoqueDestino.est_saldo_bloqueado = 0;
+                        estoqueDestino.est_validade = validade;
+                  } else {
+                        // Se existir, atualiza o saldo disponível
+                        estoqueDestino.est_saldo_disponivel += qtde;
+                  }
+                  await estoqueDestino.Salvar();
+
+                  // Busca o depósito de destino para obter a descrição
+                  await depositos.BuscarPorId(est_dep_id_destino);
+
+                  if (!depositos.found) {
+                        const error = new Error(`Deposito Destino não encontrado.`) as any;
+                        error.statusCode = 404;
+                        throw error;
+                  }
+
+                  const deposito_destino = depositos.dep_descr;
+
+                  // Gera o número do documento de movimentação
+                  const anoAtual = new Date().getFullYear();
+                  const mesAtual = (new Date().getMonth() + 1).toString().padStart(2,'0');
+                  const numeroAleatorio = Math.floor(Math.random() * 11333).toString().padStart(4, '0');
+                  
+                  const mov_doc: string = `${anoAtual}${mesAtual}${numeroAleatorio}`;
+                  
+                  // Registra a movimentação de saída do depósito de origem
+                  await movimentacoes.BuscarPorId(0)
+
+                  movimentacoes.mov_date = new Date();
+                  movimentacoes.mov_descr = `Transferencia entre Deposito : ${deposito_origem} para ${deposito_destino}`
+                  movimentacoes.mov_documento = mov_doc;
+                  movimentacoes.mov_med_id = med_id;
+                  movimentacoes.mov_med_lote = lote;
+                  movimentacoes.mov_qtde = qtde;
+                  movimentacoes.mov_tipo = 'TRA'
+                  movimentacoes.mov_user = user;
+
+                  await movimentacoes.Salvar();
+
+                  }
+                  
+                  await db.Commit();
+
+                  resdata.msg = 'Solicitação encerrada com sucesso';
+
+            }catch (error :any) {
+                  applyControllerError(error, resdata, 'Controller Solicitacoes - Encerrar');
+                  
+            } finally {
+                  await db.Disconnect();
+                  res.status(resdata.status).json(resdata);
+            }
+
+      }
+
+      static async Salvar(req: Request, res: Response) {
+
+      const db: iDatabase = new Database('fsph_farmacia');
+
+      const resdata: iresdata = {err: 0, msg: '', status: 200, data: []};
 
       try {
 
             await db.Connect();
-
             await db.Begin();
 
-            // Extrai os dados do corpo da requisição
-            const sol_id : number = Number(req.body.sol_id || 0);
-            const est_dep_id_destino = Number(req.body.est_dep_id_destino) || 0;
-            const user = String(req.body.user || null);
+            const sol_id = Number(req.body.sol_id);
+            const sol_date = req.body.sol_date as string;
+            const sol_dep_id = Number(req.body.sol_dep_id);
+            const sol_local_id = Number(req.body.sol_local_id);
+            const sol_user = req.body.sol_user as string;
+            const sol_status = Number(req.body.sol_status);
+            const sol_obs = req.body.sol_obs as string;
+            const itens = req.body.itens as Array<any>;
 
-            // Valida os dados recebidos
-            if (sol_id === 0) {
-                const error = new Error("ID da solicitação não informado") as any;
-                error.statusCode = 400;
-                throw error;
+            if (isNaN(sol_id)) {
+                  const error = new Error("Parâmetro 'sol_id' inválido.");
+                  error.statusCode = 400;
+                  throw error;
             }
 
-            if (est_dep_id_destino === 0) {
-                const error = new Error("Deposito de destino não informado") as any;
-                error.statusCode = 400;
-                throw error;
+            if (!sol_date || isNaN(Date.parse(sol_date))) {
+                  const error = new Error("Parâmetro Data Solicitação inválida ou ausente.");
+                  error.statusCode = 400;
+                  throw error;
             }
 
-            if (!user) {
-                const error = new Error("Usuario não informado.") as any;
-                error.statusCode = 400;
-                throw error;
+            if (isNaN(sol_dep_id)) {
+                  const error = new Error("Parâmetro Deposito inválido.");
+                  error.statusCode = 400;
+                  throw error;
             }
 
-            // Instancia os DAOs necessários
+            if (isNaN(sol_local_id)) {
+                  const error = new Error("Parâmetro Local inválido.");
+                  error.statusCode = 400;
+                  throw error;
+            }
+
+            if (!sol_user || typeof sol_user !== 'string') {
+                  const error = new Error("Parâmetro Usuário inválido ou ausente.");
+                  error.statusCode = 400;
+                  throw error;
+            }
+
+            if (itens && !Array.isArray(itens)) {
+                  const error = new Error("Parâmetro Itens inválido. Deve ser um array.");
+                  error.statusCode = 400;
+                  throw error;
+            }
+
             const solicitacoes = new Solicitacoes(db.connection);
-            const itensSolicitacoes = new ItensSolicitacoes(db.connection);
-            const estoqueOrigem = new Estoque(db.connection);
-            const estoqueDestino = new Estoque(db.connection);
-            const movimentacoes = new Movimentacoes(db.connection);
-            const depositos = new Depositos(db.connection);
 
-            // Busca a solicitação pelo ID
             await solicitacoes.BuscarPorId(sol_id);
 
-            if (!solicitacoes.found) {
-                const error = new Error(`Solicitação ID ${sol_id} não encontrada.`) as any;
-                error.statusCode = 404;
-                throw error;
+            if (!solicitacoes.found && sol_id !== 0) {
+                  const error = new Error(`Solicitação com ID ${sol_id} não encontrada.`);
+                  error.statusCode = 404;
+                  throw error;
             }
 
-            solicitacoes.sol_status = 1; // Encerrada
-            
+            solicitacoes.sol_id = sol_id;
+            solicitacoes.sol_date = sol_date;
+            solicitacoes.sol_dep_id = sol_dep_id;
+            solicitacoes.sol_local_id = sol_local_id;
+            solicitacoes.sol_user = sol_user;
+            solicitacoes.sol_status = solicitacoes.found ? sol_status : 1; // Se for novo registro, define status inicial
+            solicitacoes.sol_obs = sol_obs;
+
             await solicitacoes.Salvar();
 
-            // Lista os itens da solicitação
-            const itens = await itensSolicitacoes.ListarItens(sol_id);
-
             for (const item of itens) {
+                  const iso_id = Number(item.iso_id || 0);
+                  const iso_med_id = Number(item.iso_med_id || 0);
+                  const iso_med_qtde = Number(item.iso_med_qtde || 0);
+                  const iso_med_lote = String(item.iso_med_lote || '');
+                  const iso_med_validade = String(item.iso_med_validade || '');
 
-                // Extrai os dados do item da solicitação  
-                const est_dep_id_origem = Number(item.est_dep_id_origem || 0);
-                const med_id = Number(item.iso_med_id || 0);
-                const qtde = Number(item.iso_med_qtde || 0);
-                const lote = String(item.iso_med_lote || '');
-                const validade = String(item.iso_med_validade || '');
+                  if (iso_med_id === 0) {
+                        const error = new Error("ID do medicamento não informado para um dos itens.");
+                        error.statusCode = 400;
+                        throw error;
+                  }
 
-                // Valida os dados do item da solicitação
-                if (est_dep_id_origem === 0) {
-                  const error = new Error("Deposito de origem não informado") as any;
-                  error.statusCode = 400;
-                  throw error;
-                }
+                  if (iso_med_qtde <= 0) {
+                        const error = new Error("Quantidade do medicamento deve ser maior que zero para um dos itens.");
+                        error.statusCode = 400;
+                        throw error;
+                  }
 
-                if (med_id === 0) {
-                  const error = new Error("ID do medicamento não informado") as any;
-                  error.statusCode = 400;
-                  throw error;
-                }
+                  const itensSolicitacoes = new ItensSolicitacoes(db.connection);
 
-                if (qtde <= 0) {
-                  const error = new Error("Quantidade do medicamento deve ser maior que zero") as any;
-                  error.statusCode = 400;
-                  throw error;
-                }
+                  await itensSolicitacoes.BuscarPorId(iso_id);
 
-                // Busca os depósitos de origem e destino
-                await depositos.BuscarPorId(est_dep_id_origem);
+                  if (!itensSolicitacoes.found && iso_id !== 0) {
+                        const error = new Error(`Item da solicitação com ID ${iso_id} não encontrado.`);
+                        error.statusCode = 404;
+                        throw error;
+                  }
 
-                if (!depositos.found) {
-                  const error = new Error(`Deposito origem não encontrado.`) as any;
-                  error.statusCode = 404;
-                  throw error;
-                }
+                  itensSolicitacoes.iso_id = iso_id;
+                  itensSolicitacoes.iso_sol_id = solicitacoes.sol_id;
+                  itensSolicitacoes.iso_med_id = iso_med_id;
+                  itensSolicitacoes.iso_med_qtde = iso_med_qtde;
+                  itensSolicitacoes.iso_med_lote = iso_med_lote;
+                  itensSolicitacoes.iso_med_validade = iso_med_validade;
 
-                const deposito_origem = depositos.dep_descr;
-
-                // Atualiza o estoque de origem
-                await estoqueOrigem.BuscarPorItemEstoque(est_dep_id_origem, med_id, lote);
-                if (!estoqueOrigem.found) {
-                  const error = new Error(`Estoque de origem não encontrado para o medicamento ID ${med_id} no depósito ID ${est_dep_id_origem} e lote ${lote}`) as any;
-                  error.statusCode = 404;
-                  throw error;
-                }
-
-                estoqueOrigem.est_saldo_disponivel -= qtde;
-
-                await estoqueOrigem.Salvar();
-
-                // Atualiza o estoque de destino
-                await estoqueDestino.BuscarPorItemEstoque(est_dep_id_destino, med_id, lote);
-                
-                if (!estoqueDestino.found) {
-                  // Se não existir, cria um novo registro de estoque
-                  estoqueDestino.est_dep_id = est_dep_id_destino;
-                  estoqueDestino.est_med_id = med_id;
-                  estoqueDestino.est_lote = lote;
-                  estoqueDestino.est_saldo_disponivel = qtde;
-                  estoqueDestino.est_saldo_bloqueado = 0;
-                  estoqueDestino.est_validade = validade;
-                } else {
-                  // Se existir, atualiza o saldo disponível
-                  estoqueDestino.est_saldo_disponivel += qtde;
-                }
-                await estoqueDestino.Salvar();
-
-                // Busca o depósito de destino para obter a descrição
-                await depositos.BuscarPorId(est_dep_id_destino);
-
-                if (!depositos.found) {
-                  const error = new Error(`Deposito Destino não encontrado.`) as any;
-                  error.statusCode = 404;
-                  throw error;
-                }
-
-                const deposito_destino = depositos.dep_descr;
-
-                // Gera o número do documento de movimentação
-                const anoAtual = new Date().getFullYear();
-                const mesAtual = (new Date().getMonth() + 1).toString().padStart(2,'0');
-                const numeroAleatorio = Math.floor(Math.random() * 11333).toString().padStart(4, '0');
-                
-                const mov_doc: string = `${anoAtual}${mesAtual}${numeroAleatorio}`;
-            
-                // Registra a movimentação de saída do depósito de origem
-                await movimentacoes.BuscarPorId(0)
-
-                movimentacoes.mov_date = new Date();
-                movimentacoes.mov_descr = `Transferencia entre Deposito : ${deposito_origem} para ${deposito_destino}`
-                movimentacoes.mov_documento = mov_doc;
-                movimentacoes.mov_med_id = med_id;
-                movimentacoes.mov_med_lote = lote;
-                movimentacoes.mov_qtde = qtde;
-                movimentacoes.mov_tipo = 'TRA'
-                movimentacoes.mov_user = user;
-
-                await movimentacoes.Salvar();
-
+                  await itensSolicitacoes.Salvar();
             }
-            
+
             await db.Commit();
 
-            resdata.msg = 'Solicitação encerrada com sucesso';
+            resdata.msg = solicitacoes.found ? `Solicitação com ID ${solicitacoes.sol_id} atualizada com sucesso.` : `Nova solicitação criada com ID ${solicitacoes.sol_id}.`;
+            resdata.data = {sol_id: solicitacoes.sol_id};
 
-      }catch (error :any) {
-            applyControllerError(error, resdata, 'Controller Solicitacoes - Encerrar');
-            
-      } finally {
-            await db.Disconnect();
-            res.status(resdata.status).json(resdata);
+      } catch (error: any) {
+            await db.Rollback();
+            applyControllerError(error, resdata,'Controller_Solicitacoes.Salvar');
       }
 
-    }
+      await db.Disconnect();
+
+      res.status(resdata.status).json(resdata);
+
+      }
 }
