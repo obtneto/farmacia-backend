@@ -4,9 +4,11 @@ import BaseModel, { iBaseModel } from './BaseModel.js';
 export interface iSolicitacoesFields {
    sol_id : number |null,
    sol_date : Date| string | null,
-   sol_dep_id : number | null,
-   sol_local_id : number | null,
-   sol_user : string | null,
+   sol_dep_ori_id : number | null,
+   sol_dep_des_id : number | null,
+   sol_user_create : string | null,
+   sol_user_aprov : string | null,
+   sol_date_aprov : Date | string | null,
    sol_status : number | null,
    sol_obs : string | null,
 }
@@ -22,9 +24,11 @@ export default class Solicitacoes extends BaseModel implements iBaseModel,iSolic
         const initFields: iSolicitacoesFields = {
             sol_id: 0,
             sol_date: null,
-            sol_dep_id: null,
-            sol_local_id: null,
-            sol_user: null,
+            sol_dep_ori_id: null,
+            sol_dep_des_id: null,
+            sol_user_create: null,
+            sol_user_aprov: null,
+            sol_date_aprov: null,
             sol_status: null,
             sol_obs: null,
         };
@@ -41,14 +45,20 @@ export default class Solicitacoes extends BaseModel implements iBaseModel,iSolic
     set sol_date(date : Date | string | null) { this._fields.sol_date = date;}
     get sol_date() :Date | string | null {return this._fields.sol_date;}
 
-    set sol_dep_id(dep_id : number | null) { this._fields.sol_dep_id = dep_id;}
-    get sol_dep_id() :number | null {return this._fields.sol_dep_id;}
+    set sol_dep_ori_id(dep_ori_id : number | null) { this._fields.sol_dep_ori_id = dep_ori_id;}
+    get sol_dep_ori_id() :number | null {return this._fields.sol_dep_ori_id;}
 
-    set sol_local_id(local_id : number | null) { this._fields.sol_local_id = local_id;}
-    get sol_local_id() :number | null {return this._fields.sol_local_id;}
+    set sol_dep_des_id(dep_des_id : number | null) { this._fields.sol_dep_des_id = dep_des_id;}
+    get sol_dep_des_id() :number | null {return this._fields.sol_dep_des_id;}
 
-    set sol_user(user : string | null) { this._fields.sol_user = user;}
-    get sol_user() :string | null {return this._fields.sol_user;}
+    set sol_user_create(user_create : string | null) { this._fields.sol_user_create = user_create;}
+    get sol_user_create() :string | null {return this._fields.sol_user_create;}
+
+    set sol_user_aprov(user_aprov : string | null) { this._fields.sol_user_aprov = user_aprov;}
+    get sol_user_aprov() :string | null {return this._fields.sol_user_aprov;}
+
+    set sol_date_aprov(date_aprov : Date | string | null) { this._fields.sol_date_aprov = date_aprov;}
+    get sol_date_aprov() :Date | string | null {return this._fields.sol_date_aprov;}
 
     set sol_status(status : number | null) { this._fields.sol_status = status;}
     get sol_status() :number | null {return this._fields.sol_status;}

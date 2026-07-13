@@ -196,7 +196,10 @@ function inferSummary(method, fullPath) {
 
 function buildOperation({ method, routePath, fullPath }) {
   const requestBodySchema = REQUEST_BODY_SCHEMAS[`${method.toUpperCase()} ${fullPath}`];
-  const isPdfInlineRoute = method === 'get' && fullPath === '/demandas-especificas/imprimir-recibo/{ent_id}';
+  const isPdfInlineRoute = method === 'get' && [
+    '/demandas-especificas/imprimir-recibo/{ent_id}',
+    '/solicitacoes/imprimir/{sol_id}',
+  ].includes(fullPath);
   const operation = {
     tags: [toTitleCase(inferTag(fullPath))],
     summary: inferSummary(method, fullPath),

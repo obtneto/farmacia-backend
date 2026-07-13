@@ -63,4 +63,23 @@ export default class ItensSolicitacoes extends BaseModel implements iBaseModel,i
 
     }
 
+    public async ListarItensParaImpressao(sol_id: number) : Promise<RowDataPacket[]> {
+
+      const query : string = `SELECT i.*,
+                                     m.med_id,
+                                     m.med_bona_codigo,
+                                     m.med_descr,
+                                     m.med_descr_coml,
+                                     COALESCE(NULLIF(TRIM(CAST(m.med_ui_cx AS CHAR)), ''), m.med_und) AS med_und
+                              FROM tb_itens_solicitacoes i
+                              LEFT JOIN tb_medicamentos m ON i.iso_med_id = m.med_id
+                              WHERE i.iso_sol_id = :sol_id
+                              ORDER BY i.iso_id`;
+
+      const [rows] = await this.ExecuteQuery(query, {sol_id}) as [RowDataPacket[]];
+
+      return rows;
+
+    }
+
 }
