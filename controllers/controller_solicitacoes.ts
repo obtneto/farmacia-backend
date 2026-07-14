@@ -920,7 +920,7 @@ export default class Controller_Solicitacoes {
                   solicitacoes.sol_dep_ori_id = sol_dep_ori_id;
                   solicitacoes.sol_dep_des_id = sol_dep_des_id;
                   solicitacoes.sol_user_create = sol_user_create;
-                  solicitacoes.sol_status = solicitacoes.found ? sol_status : 1; // Se for novo registro, define status inicial
+                  solicitacoes.sol_status = solicitacoes.found ? sol_status : 0; // Se for novo registro, define status inicial
                   solicitacoes.sol_obs = sol_obs;
 
                   await solicitacoes.Salvar();
