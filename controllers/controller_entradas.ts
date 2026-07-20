@@ -1,91 +1,196 @@
 import { Request, Response } from "express";
+import { randomInt } from "crypto";
 import Database, { iDatabase } from "../connections/dbconn.js";
 import Entradas from "../model/dao_entradas.js";
 import Estoque from "../model/dao_estoque.js";
-import ItensEntradas from "../model/dao_itens_entradas.js";
+import ItensEntradas, { iItemEntradaFields } from "../model/dao_itens_entradas.js";
 import Medicamentos from "../model/dao_medicamentos.js";
-import Movimentacoes from "../model/dao_movimentacoes.js";
-import DemandasEspecificas from "../model/dao_demanda_especificas.js";
-import ItensDemandasEspecificas from "../model/dao_itens_demandas_especificas.js";
-import Depositos from "../model/dao_depositos.js";
 import { iresdata } from "./interface_controllers.js";
 import { applyControllerError } from "../utils/controllerError.js";
+
+interface iSalvarEntradaItemPayload {
+    ent_med_id: number;
+    ent_lote: string;
+    ent_lote_validade: string;
+    ent_qtde: number;
+}
+
+interface iSalvarEntradaPayload {
+    ent_id?: number;
+    ent_date: string;
+    ent_doc?: string | number | null;
+    ent_fornecido_por: string;
+    ent_dep_id: number;
+    itens: iSalvarEntradaItemPayload[];
+}
+
+function createResponseData(): iresdata {
+    return {
+        err: 0,
+        msg: '',
+        status: 200,
+        data: null
+    };
+}
+
+function createHttpError(message: string, statusCode: number): Error & { statusCode: number } {
+    const error = new Error(message) as Error & { statusCode: number };
+    error.statusCode = statusCode;
+    return error;
+}
+
+function generateEntradaDocumento(referenceDate: Date): string {
+    const baseDate = Number.isNaN(referenceDate.getTime()) ? new Date() : referenceDate;
+    const year = String(baseDate.getFullYear());
+    const month = String(baseDate.getMonth() + 1).padStart(2, '0');
+    const sequence = String(randomInt(100000, 1000000));
+
+    return `${year}${month}${sequence}`;
+}
+
+function normalizeEntradaDocumento(rawValue: iSalvarEntradaPayload['ent_doc'], referenceDate: Date): string {
+    if (rawValue === null || rawValue === undefined) {
+        return generateEntradaDocumento(referenceDate);
+    }
+
+    if (typeof rawValue === 'number') {
+        return rawValue === 0
+            ? generateEntradaDocumento(referenceDate)
+            : String(rawValue).trim().toLocaleUpperCase();
+    }
+
+    const normalizedValue = String(rawValue).trim().toLocaleUpperCase();
+
+    if (!normalizedValue || /^0+$/.test(normalizedValue)) {
+        return generateEntradaDocumento(referenceDate);
+    }
+
+    return normalizedValue;
+}
+
+function shouldAutoGenerateEntradaDocumento(rawValue: iSalvarEntradaPayload['ent_doc']): boolean {
+    if (rawValue === null || rawValue === undefined) {
+        return true;
+    }
+
+    if (typeof rawValue === 'number') {
+        return rawValue === 0;
+    }
+
+    const normalizedValue = String(rawValue).trim().toLocaleUpperCase();
+    return !normalizedValue || /^0+$/.test(normalizedValue) || normalizedValue === 'NULL' || normalizedValue === 'UNDEFINED';
+}
+
+function normalizeHeaderPayload(body: iSalvarEntradaPayload) {
+    const ent_id = Number(body.ent_id || 0);
+    const ent_date = new Date(body.ent_date);
+    const ent_doc_auto_generated = shouldAutoGenerateEntradaDocumento(body.ent_doc);
+    const ent_doc = normalizeEntradaDocumento(body.ent_doc, ent_date);
+    const ent_fornecido_por = String(body.ent_fornecido_por || '').trim().toLocaleUpperCase();
+    const ent_dep_id = Number(body.ent_dep_id || 0);
+    const itens = Array.isArray(body.itens) ? body.itens : [];
+
+    return {
+        ent_id,
+        ent_date,
+        ent_doc,
+        ent_doc_auto_generated,
+        ent_fornecido_por,
+        ent_dep_id,
+        itens
+    };
+}
+
+function normalizeItemPayload(item: iSalvarEntradaItemPayload, index: number): iItemEntradaFields {
+    const ite_ent_med_id = Number(item.ent_med_id || 0);
+    const ite_ent_lote = String(item.ent_lote || '').trim().toLocaleUpperCase();
+    const ite_ent_lote_validade = item.ent_lote_validade ? new Date(item.ent_lote_validade) : null;
+    const ite_ent_qtde = Number(item.ent_qtde || 0);
+
+    if (ite_ent_med_id <= 0) {
+        throw createHttpError(`Item ${index + 1}: medicamento é obrigatório.`, 400);
+    }
+
+    if (!ite_ent_lote) {
+        throw createHttpError(`Item ${index + 1}: lote é obrigatório.`, 400);
+    }
+
+    if (!ite_ent_lote_validade || Number.isNaN(ite_ent_lote_validade.getTime())) {
+        throw createHttpError(`Item ${index + 1}: validade do lote é obrigatória.`, 400);
+    }
+
+    if (!Number.isFinite(ite_ent_qtde) || ite_ent_qtde <= 0) {
+        throw createHttpError(`Item ${index + 1}: quantidade deve ser maior que zero.`, 400);
+    }
+
+    return {
+        ite_id: 0,
+        ite_ent_id: 0,
+        ite_ent_med_id,
+        ite_ent_lote,
+        ite_ent_lote_validade,
+        ite_ent_qtde
+    };
+}
+
+function buildDuplicateMedicationGuard(items: iItemEntradaFields[]) {
+    const usedMedicamentos = new Set<number>();
+
+    for (const item of items) {
+        if (usedMedicamentos.has(item.ite_ent_med_id)) {
+            throw createHttpError('Não é permitido repetir o mesmo medicamento na mesma entrada.', 400);
+        }
+
+        usedMedicamentos.add(item.ite_ent_med_id);
+    }
+}
 
 export default class Controller_Entradas {
 
     static async ListarTodos(req: Request, res: Response) {
-        
         const db: iDatabase = new Database();
-        
-        const resdata : iresdata = {
-                err: 0,
-                msg: '',
-                status: 200,
-                data: {}
-            }
+        const resdata = createResponseData();
 
         try {
-
             await db.Connect();
 
             const pesq = String(req.params.pesq || '*');
-            const data_inicio = String(req.params.data_inicio);
-            const data_fim = String(req.params.data_fim);
+            const data_inicio = new Date(String(req.params.data_inicio));
+            const data_fim = new Date(String(req.params.data_fim));
 
-            if (Number.isNaN(new Date(data_inicio).getTime())) {
-                const error = new Error('Data de início inválida') as any;
-                error.statusCode = 400;
-                throw error;
+            if (Number.isNaN(data_inicio.getTime())) {
+                throw createHttpError('Data de início inválida', 400);
             }
 
-            if (Number.isNaN(new Date(data_fim).getTime())) {
-                const error = new Error('Data de fim inválida') as any;
-                error.statusCode = 400;
-                throw error
+            if (Number.isNaN(data_fim.getTime())) {
+                throw createHttpError('Data de fim inválida', 400);
             }
 
             if (data_inicio > data_fim) {
-                const error = new Error('Data de início deve ser menor que a data de fim')
-                error.statusCode =  400;
-                throw error;
+                throw createHttpError('Data de início deve ser menor que a data de fim', 400);
             }
 
             const entradas = new Entradas(db.connection);
-
-            const result = await entradas.ListarPeriodo(pesq, data_inicio, data_fim);
-
-            resdata.data = result;
-
+            resdata.data = await entradas.ListarTodos(pesq, data_inicio, data_fim);
         } catch (error: any) {
             applyControllerError(resdata, error, 'Controller Entradas');
         }
 
         await db.Disconnect();
-
         return res.status(resdata.status).json(resdata);
     }
 
     static async BuscarPorId(req: Request, res: Response) {
-        
         const db: iDatabase = new Database();
-
-        const resdata: iresdata = {
-            err: 0,
-            msg: '',
-            status: 200,
-            data: []
-        };
+        const resdata = createResponseData();
 
         try {
-
             await db.Connect();
 
             const ent_id = Number(req.params.ent_id || 0);
 
             if (ent_id <= 0) {
-                const error = new Error('ID da entrada inválido');
-                error.statusCode = 400;
-                throw error;
+                throw createHttpError('ID da entrada inválido', 400);
             }
 
             const entradas = new Entradas(db.connection);
@@ -94,13 +199,11 @@ export default class Controller_Entradas {
             const entrada = await entradas.BuscarPorId(ent_id);
 
             if (!entradas.found) {
-                const error = new Error('Entrada não encontrada.');
-                error.statusCode = 404;
-                throw error;
+                throw createHttpError('Entrada não encontrada', 404);
             }
 
-            const itens = await itensEntradas.ListarItens(ent_id);
-            const quantidade_total = itens.reduce((total, item) => total + Number(item.quantidade || 0), 0);
+            const itens = await itensEntradas.ListarPorEntrada(ent_id);
+            const quantidade_total = itens.reduce((total, item) => total + Number(item.ite_ent_qtde || 0), 0);
 
             resdata.data = {
                 ...entrada,
@@ -108,7 +211,6 @@ export default class Controller_Entradas {
                 total_itens: itens.length,
                 quantidade_total
             };
-
         } catch (error: any) {
             applyControllerError(resdata, error, 'Controller Entradas');
         }
@@ -118,110 +220,82 @@ export default class Controller_Entradas {
     }
 
     static async Salvar(req: Request, res: Response) {
-        
         const db: iDatabase = new Database();
-
-        const resdata :iresdata = {
-            err: 0,
-            msg: '',
-            status:200,
-            data: []
-        };
+        const resdata = createResponseData();
 
         try {
-
             await db.Connect();
             await db.Begin();
 
-            const ent_id = Number(req.body.ent_id || 0);
-            const ent_date = new Date(req.body.ent_date);
-            let ent_doc = String(req.body.ent_doc || '');
-            const ent_doc_informado = ent_doc.trim().length > 0;
-            const ent_for_id = Number(req.body.ent_for_id || 0);
-            const ent_dep_id = Number(req.body.ent_dep_id || 0);
-            const ent_user_digit = String(req.body.ent_user_digit || null);
-            const itens = Array.isArray(req.body.itens) ? req.body.itens : null
+            const payload = normalizeHeaderPayload(req.body as iSalvarEntradaPayload);
+            const itens = payload.itens.map((item, index) => normalizeItemPayload(item, index));
 
-            if (Number.isNaN(ent_date.getTime())) {
-                const error = new Error('Data da entrada é obrigatória.');
-                error.statusCode = 400;
-                throw error;
+            if (payload.ent_id > 0) {
+                throw createHttpError('Alteração de entradas existentes não é suportada no schema atual.', 409);
             }
 
-            if (ent_for_id === 0) {
-                const error = new Error('Fornecedor não Informado.');
-                error.statusCode = 400;
-                throw error;
+            if (Number.isNaN(payload.ent_date.getTime())) {
+                throw createHttpError('Data da entrada é obrigatória.', 400);
             }
 
-            if (ent_dep_id <= 0) {
-                const error = new Error('Depósito de destino é obrigatório.');
-                error.statusCode = 400;
-                throw error;
+            if (!payload.ent_fornecido_por) {
+                throw createHttpError('Fornecedor da entrada é obrigatório.', 400);
             }
 
-            if (ent_user_digit === null || ent_user_digit.trim().length === 0) {
-                const error = new Error('Usuário digitador é obrigatório.');
-                error.statusCode = 400;
-                throw error;
+            if (payload.ent_dep_id <= 0) {
+                throw createHttpError('Depósito de destino é obrigatório.', 400);
             }
 
-            if (!itens || itens.length === 0) {
-                const error = new Error('Adicione pelo menos um item à entrada.');
-                error.statusCode = 400;
-                throw error;
+            if (itens.length === 0) {
+                throw createHttpError('Adicione pelo menos um item à entrada.', 400);
             }
 
-            if (!ent_doc) {
-
-                const anoAtual = new Date().getFullYear();
-                const mesAtual = (new Date().getMonth() + 1).toString().padStart(2,'0');
-                const numeroAleatorio = Math.floor(Math.random() * 11333).toString().padStart(4, '0');
-                
-                ent_doc = `${anoAtual}-${mesAtual}-${numeroAleatorio}`;
-            }
+            buildDuplicateMedicationGuard(itens);
 
             const entradas = new Entradas(db.connection);
             const itensEntradas = new ItensEntradas(db.connection);
+            const estoque = new Estoque(db.connection);
             const medicamentos = new Medicamentos(db.connection);
-        
-            void await entradas.BuscarPorId(ent_id);
 
-            entradas.ent_date = ent_date;
-            entradas.ent_doc = ent_doc;
-            entradas.ent_dep_id = ent_dep_id;
-            entradas.ent_for_id = ent_for_id;
-            entradas.ent_status = 0;
-            entradas.ent_user_digit = ent_user_digit;
-            entradas.ent_dt_digit = new Date();
+            entradas.ent_date = payload.ent_date;
+            entradas.ent_doc = payload.ent_doc;
+            entradas.ent = payload.ent_fornecido_por;
 
             await entradas.Salvar();
 
             for (const item of itens) {
-
-                const itemMedId = Number(item.ent_med_id || 0);
-                const itemLote = String(item.ent_lote || '');
-                const itemLoteValidade = item.ent_lote_validade;
-                const itemQtde = Number(item.ent_qtde || 0);
-
-                await medicamentos.BuscarPorId(itemMedId);
+                await medicamentos.BuscarPorId(item.ite_ent_med_id);
 
                 if (!medicamentos.found) {
-                    const error = new Error(`Medicamento ${itemMedId} não encontrado.`);
-                    error.statusCode = 404;
+                    throw createHttpError(`Medicamento ${item.ite_ent_med_id} não encontrado.`, 404);
+                }
+
+                item.ite_ent_id = entradas.ent_id;
+
+                try {
+                    await itensEntradas.Inserir(item);
+                } catch (error: any) {
+                    if (error?.code === 'ER_DUP_ENTRY') {
+                        throw createHttpError(
+                            `Conflito de índice ao gravar o item ${item.ite_id || 'novo'} da entrada ${item.ite_ent_id}. Verifique se os índices de tb_itens_entradas permitem este medicamento/lote dentro da mesma entrada.`,
+                            409
+                        );
+                    }
+
                     throw error;
                 }
 
-                await itensEntradas.BuscarPorId(0)
+                await estoque.BuscarPorItemEstoque(item.ite_ent_med_id, payload.ent_dep_id, item.ite_ent_lote);
 
-                itensEntradas.ite_ent_id = entradas.ent_id;
-                itensEntradas.ite_ent_med_id = itemMedId;
-                itensEntradas.ite_ent_lote = itemLote;
-                itensEntradas.ite_ent_lote_validade = itemLoteValidade;
-                itensEntradas.ite_ent_qtde = itemQtde;
+                estoque.est_med_id = item.ite_ent_med_id;
+                estoque.est_dep_id = payload.ent_dep_id;
+                estoque.est_lote = item.ite_ent_lote;
+                estoque.est_validade = item.ite_ent_lote_validade || new Date();
+                estoque.est_saldo = estoque.found
+                    ? Number(estoque.est_saldo) + Number(item.ite_ent_qtde)
+                    : Number(item.ite_ent_qtde);
 
-                await itensEntradas.Salvar();
-
+                await estoque.Salvar();
             }
 
             await db.Commit();
@@ -230,7 +304,7 @@ export default class Controller_Entradas {
             resdata.data = {
                 ent_id: entradas.ent_id,
                 ent_doc: entradas.ent_doc,
-                ent_doc_auto_generated: !ent_doc_informado,
+                ent_doc_auto_generated: payload.ent_doc_auto_generated,
                 total_itens: itens.length
             };
         } catch (error: any) {
@@ -241,388 +315,4 @@ export default class Controller_Entradas {
         await db.Disconnect();
         return res.status(resdata.status).json(resdata);
     }
-
-  static async ListarItens(req: Request, res: Response) {
-
-    const db : iDatabase = new Database('fsph_farmacia');
-
-        const resdata : iresdata = {
-            err: 0,
-            msg: '',
-            status: 200,
-            data: []
-        }
-
-        try {
-
-            await db.Connect();
-
-            const ent_id = Number(req.params.ent_id || 0);
-
-            if (ent_id <= 0) {
-                const error = new Error('ID da entrada inválido');
-                error.statusCode = 400;
-                throw error;
-            }
-
-            const itensEntradas = new ItensEntradas(db.connection);
-
-            const result = await itensEntradas.ListarItens(ent_id);
-
-            resdata.data = result;
-            
-        } catch (error) {
-            applyControllerError(resdata, error, 'Controller Entradas');
-        }
-
-    await db.Disconnect();
-    return res.status(resdata.status).json(resdata);
-
-  }
-
-  static async AtualizarItem(req: Request, res: Response) {
-
-    const db: iDatabase = new Database();
-
-    const resdata: iresdata = {
-        err: 0,
-        msg: '',
-        status: 200,
-        data: []
-    }
-
-    try {
-
-        await db.Connect();
-        await db.Begin();
-
-        const ite_id = Number(req.params.ite_id || 0);
-        const ent_lote = String(req.body.ent_lote || '').trim().toLocaleUpperCase('pt-BR');
-        const ent_lote_validade = new Date(req.body.ent_lote_validade);
-        const ent_qtde = Number(req.body.ent_qtde || 0);
-
-        if (ite_id <= 0) {
-            const error = new Error('ID do item inválido');
-            error.statusCode = 400;
-            throw error;
-        }
-
-        if (!ent_lote) {
-            const error = new Error('Lote do item é obrigatório.');
-            error.statusCode = 400;
-            throw error;
-        }
-
-        if (Number.isNaN(ent_lote_validade.getTime())) {
-            const error = new Error('Validade do item é obrigatória.');
-            error.statusCode = 400;
-            throw error;
-        }
-
-        if (!Number.isFinite(ent_qtde) || ent_qtde <= 0) {
-            const error = new Error('Quantidade do item deve ser maior que zero.');
-            error.statusCode = 400;
-            throw error;
-        }
-
-        const itensEntradas = new ItensEntradas(db.connection);
-        const entradas = new Entradas(db.connection);
-
-        await itensEntradas.BuscarPorId(ite_id);
-
-        if (!itensEntradas.found || !itensEntradas.ite_ent_id) {
-            const error = new Error('Item da entrada não encontrado.');
-            error.statusCode = 404;
-            throw error;
-        }
-
-        await entradas.BuscarPorId(Number(itensEntradas.ite_ent_id));
-
-        if (!entradas.found) {
-            const error = new Error('Entrada vinculada ao item não encontrada.');
-            error.statusCode = 404;
-            throw error;
-        }
-
-        if (Number(entradas.ent_status || 0) === 1) {
-            const error = new Error('Não é permitido editar item de entrada aprovada.');
-            error.statusCode = 400;
-            throw error;
-        }
-
-        itensEntradas.ite_ent_lote = ent_lote;
-        itensEntradas.ite_ent_lote_validade = ent_lote_validade;
-        itensEntradas.ite_ent_qtde = ent_qtde;
-
-        await itensEntradas.Salvar();
-        await db.Commit();
-
-        resdata.msg = 'Item da entrada atualizado com sucesso';
-        resdata.data = {
-            ite_id: itensEntradas.ite_id,
-            ite_ent_id: itensEntradas.ite_ent_id,
-            ite_ent_lote: itensEntradas.ite_ent_lote,
-            ite_ent_lote_validade: itensEntradas.ite_ent_lote_validade,
-            ite_ent_qtde: itensEntradas.ite_ent_qtde,
-        };
-
-    } catch (error) {
-        await db.Rollback();
-        applyControllerError(resdata, error, 'Controller Entradas');
-    }
-
-    await db.Disconnect();
-    return res.status(resdata.status).json(resdata);
-
-  }
-
-  static async ListarEntradasNaoAprovados(req: Request, res: Response) {
-
-        const db : iDatabase = new Database('fsph_farmacia');
-
-        const resdata : iresdata = {
-            err: 0,
-            msg: '',
-            status: 200,
-            data: []
-        }
-
-        try {
-
-            await db.Connect();
-
-            const pesq = String(req.params.pesq || '*');
-            const dep_id = Number(req.params.dep_id || 0)
-            const data_inicio = req.params.data_inicio;
-            const data_fim = req.params.data_fim;
-
-            if (dep_id === 0) {
-                const error = new Error('Deposito inválido') as any;
-                error.statusCode = 400;
-                throw error;
-            }
-
-            if (Number.isNaN(new Date(String(data_inicio)).getTime())) {
-                const error = new Error('Data de início inválida') as any;
-                error.statusCode = 400;
-                throw error;
-            }
-
-            if (Number.isNaN(new Date(String(data_fim)).getTime())) {
-                const error = new Error('Data de fim inválida') as any;
-                error.statusCode = 400;
-                throw error
-            }
-
-            if (new Date(String(data_inicio)) > new Date(String(data_fim))) {
-                const error = new Error('Data de início deve ser menor que a data de fim')
-                error.statusCode =  400;
-                throw error;
-            }
-
-            const entradas = new Entradas(db.connection);
-
-            const result = await entradas.ListarEntradasNaoAprovados(pesq, String(data_inicio), String(data_fim), dep_id);
-
-            resdata.data = result;
-
-        } catch (error) {
-            applyControllerError(resdata, error, 'Controller Entradas');
-        }
-
-        await db.Disconnect();
-
-        return res.status(resdata.status).json(resdata);
-    }
-
-    static async AprovarEntradas(req: Request, res: Response) {
-
-        const db : iDatabase = new Database('fsph_farmacia');
-
-        const resdata : iresdata = {
-            err: 0,
-            msg: '',
-            status: 200,
-            data: []
-        }
-
-        try {
-
-            await db.Connect();
-            await db.Begin();
-
-            const ent_id = Number(req.body.ent_id || 0);
-            const user_aprov = String(req.body.user_aprov || null);
-
-            if (user_aprov === null || user_aprov.trim().length === 0) {
-                const error = new Error('Usuário aprovador é obrigatório.');
-                error.statusCode = 400;
-                throw error;
-            }
-
-            if (ent_id <= 0) {
-                const error = new Error('ID da entrada inválido');
-                error.statusCode = 400;
-                throw error;
-            }
-
-            const entradas = new Entradas(db.connection);
-            const estoque = new Estoque(db.connection);
-            const itensEntradas = new ItensEntradas(db.connection);
-            const movimentacoes = new Movimentacoes(db.connection);
-            const depositos = new Depositos(db.connection);
-
-            // Verificar se a entrada existe e está pendente e salvar dados de aprovação
-            await entradas.BuscarPorId(ent_id);
-
-            if (!entradas.found) {
-                const error = new Error('Entrada não encontrada.');
-                error.statusCode = 404;
-                throw error;
-            }
-
-            if (entradas.ent_status === 1) {
-                const error = new Error('Entrada já aprovada.');
-                error.statusCode = 400;
-                throw error;
-            }
-
-            // Atualizar estoque para cada item da entrada
-            const itens = await itensEntradas.ListarItens(ent_id);
-
-            for (const item of itens) {
-
-                const est_dep_id = entradas.ent_dep_id || 0;
-                const est_med_id = item.id_medicacao || 0;
-                const est_lote = item.lote || '';
-                const est_validade = item.validade || null;
-                const est_qtde = item.quantidade || 0;
-
-                await depositos.BuscarPorId(est_dep_id);
-
-                if (!depositos.found) {
-                    const error = new Error(`Depósito ${est_dep_id} não encontrado.`);
-                    error.statusCode = 404;
-                    throw error;
-                }
-
-                // Buscar o item de estoque correspondente para atualizar ou criar
-                await estoque.BuscarPorItemEstoque(est_dep_id, est_med_id, est_lote);
-
-                if (estoque.found) {
-                    
-                    estoque.est_saldo_disponivel += est_qtde;
-                    estoque.est_validade = est_validade;
-                   
-                } else {
-
-                    estoque.est_dep_id = est_dep_id;
-                    estoque.est_med_id = est_med_id;
-                    estoque.est_lote = est_lote;
-                    estoque.est_validade = est_validade;
-                    estoque.est_saldo_disponivel = est_qtde;
-                    estoque.est_saldo_bloqueado = 0;
-
-                }
-
-                await estoque.Salvar();
-
-                // Registrar movimentação de entrada
-                await movimentacoes.BuscarPorId(0);
-
-                movimentacoes.mov_date = new Date();
-                movimentacoes.mov_tipo = 'ENT';
-                movimentacoes.mov_descr = `Entrada medicamento para o depósito: ${depositos.dep_descr}`;
-                movimentacoes.mov_qtde = est_qtde;
-                movimentacoes.mov_med_id = est_med_id;
-                movimentacoes.mov_med_lote = est_lote;
-                movimentacoes.mov_documento = entradas.ent_doc;
-                movimentacoes.mov_user = user_aprov;
-
-                await movimentacoes.Salvar();
-
-            }
-
-            // Atualizar status da entrada para aprovada e salvar dados de aprovação
-            entradas.ent_status = 1;
-            entradas.ent_user_aprov = user_aprov;
-            entradas.ent_dt_aprov = new Date();
-
-            await entradas.Salvar();
-
-            await db.Commit();
-
-            resdata.msg = 'Entrada aprovada com sucesso';
-            
-
-        } catch (error) {
-            await db.Rollback();
-            applyControllerError(resdata, error, 'Controller Entradas');
-        }
-
-        await db.Disconnect();
-        return res.status(resdata.status).json(resdata);
-    }
-
-    static async ExcluirEntradas(req: Request, res: Response) {
-
-        const db: iDatabase = new Database('fsph_farmacia');
-        const resdata: iresdata = { err: 0, msg: '', status: 200, data: [] };
-
-        try {
-
-            await db.Connect();
-            await db.Begin();
-
-            const ent_id = Number(req.params.ent_id || 0);
-
-            if (ent_id <= 0) {
-                const error = new Error('ID da entrada inválido') ;
-                error.statusCode = 400;
-                throw error;
-            }
-
-            const entradas = new Entradas(db.connection);
-            const itensEntradas = new ItensEntradas(db.connection);
-            const demandasEspecificas = new DemandasEspecificas(db.connection);
-            const itensDemandasEspecificas = new ItensDemandasEspecificas(db.connection);
-
-            await entradas.BuscarPorId(ent_id);
-
-            if (!entradas.found) {
-                const error = new Error('Entrada não encontrada.');
-                error.statusCode = 404;
-                throw error;
-            }
-
-            if (entradas.ent_status === 1) {
-                const error = new Error('Nao e permitido excluir uma entrada aprovada.');
-                error.statusCode = 400;
-                throw error;
-            }
-
-            await demandasEspecificas.BuscarPorPaciente(entradas.ent_pac_id || 0);
-
-            if (demandasEspecificas.found) {
-               await db.connection.execute(
-                    `DELETE FROM tb_itens_demandas_especificas WHERE ite_ent_id = :ent_id`,
-                    { ent_id: entradas.ent_id }
-                );
-            }
-
-            await itensEntradas.ExcluirPorEntrada(ent_id);
-            await entradas.Excluir(ent_id);
-
-            await db.Commit();
-
-            resdata.msg = 'Entrada excluida com sucesso';
-            
-        } catch (error) {
-            await db.Rollback();
-            applyControllerError(resdata, error, 'Controller Entradas');
-        }
-
-        await db.Disconnect();
-        return res.status(resdata.status).json(resdata);
-    }   
 }
